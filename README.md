@@ -33,30 +33,39 @@ public class Sudoku extends JFrame{
 		                                      }
 		                                     }
 	 //fill some numbers randomly
-	 for (int z = 0; z < 3; z++) {
-	 for (int x = 0; x < 3; x++) {
-	 for (int y = 0; y < 3; y++) {
-	 txtGame[z][x][y].setText(n[x][y+3*z]);
-	 txtGame[z][x][y].setEditable(false);
-	 }
-	 }
-	 }
-	 for (int z = 3; z < 6; z++) {
-         for (int x = 0; x < 3; x++) {
-	 for (int y = 0; y < 3; y++) {
-	 txtGame[z][x][y].setText(n[x+3][y+3*(z-3)]);
-	 txtGame[z][x][y].setEditable(false);
-	 }
-	 }
-	 }
-	 for (int z = 6; z < 9; z++) {
-	 for (int x = 0; x < 3; x++) {
-	 for (int y = 0; y < 3; y++) {
-	 txtGame[z][x][y].setText(n[x+6][y+3*(z-6)]);
-	 txtGame[z][x][y].setEditable(false);
-	 }
-	 }
-	 }
+	  for (int z = 0; z < 3; z++) {
+				 for (int x = 0; x < 3; x++) {
+				 for (int y = 0; y < 3; y++) {
+					 if(n[x][y+3*z]=="0")
+						 txtGame[z][x][y].setText(" ");
+					 else
+				 txtGame[z][x][y].setText(n[x][y+3*z]);
+				 txtGame[z][x][y].setEditable(false);
+				 }
+				 }
+				 }
+				 for (int z = 3; z < 6; z++) {
+			     for (int x = 0; x < 3; x++) {
+				 for (int y = 0; y < 3; y++) {
+					 if(n[x+3][y+3*(z-3)]=="0")
+						 txtGame[z][x][y].setText(" ");
+					 else
+				 txtGame[z][x][y].setText(n[x+3][y+3*(z-3)]);
+				 txtGame[z][x][y].setEditable(false);
+				 }
+				 }
+				 }
+				 for (int z = 6; z < 9; z++) {
+				 for (int x = 0; x < 3; x++) {
+				 for (int y = 0; y < 3; y++) {
+					 if(n[x+6][y+3*(z-6)]=="0")
+						 txtGame[z][x][y].setText(" ");
+					 else
+				 txtGame[z][x][y].setText(n[x+6][y+3*(z-6)]);
+				 txtGame[z][x][y].setEditable(false);
+				 }
+				 }
+				 }
 			 }
 			 });
 			 pnlGame[i] = new JPanel();
