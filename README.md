@@ -26,7 +26,37 @@ public class Sudoku extends JFrame{
 			 btn1.addActionListener(new ActionListener() {
 			 @Override
 			 public void actionPerformed(ActionEvent e) {
-				 System.out.print("新游戏"); 
+				  String[][] n=new String[9][9];
+	                          for (int z = 0; z <9; z++) {
+		                  for (int x = 0; x < 9; x++) {
+		                  n[x][z]=String.valueOf(x);
+		                                      }
+		                                     }
+	 //fill some numbers randomly
+	 for (int z = 0; z < 3; z++) {
+	 for (int x = 0; x < 3; x++) {
+	 for (int y = 0; y < 3; y++) {
+	 txtGame[z][x][y].setText(n[x][y+3*z]);
+	 txtGame[z][x][y].setEditable(false);
+	 }
+	 }
+	 }
+	 for (int z = 3; z < 6; z++) {
+         for (int x = 0; x < 3; x++) {
+	 for (int y = 0; y < 3; y++) {
+	 txtGame[z][x][y].setText(n[x+3][y+3*(z-3)]);
+	 txtGame[z][x][y].setEditable(false);
+	 }
+	 }
+	 }
+	 for (int z = 6; z < 9; z++) {
+	 for (int x = 0; x < 3; x++) {
+	 for (int y = 0; y < 3; y++) {
+	 txtGame[z][x][y].setText(n[x+6][y+3*(z-6)]);
+	 txtGame[z][x][y].setEditable(false);
+	 }
+	 }
+	 }
 			 }
 			 });
 			 pnlGame[i] = new JPanel();
@@ -73,14 +103,6 @@ public class Sudoku extends JFrame{
 	 }
 	 }
 	 }
-	 for (int z = 0; z < 3; z++) {
-		 for (int x = 0; x < 3; x++) {
-		 for (int y = 0; y < 3; y++) {
-		 txtGame[z][x][y].setText((int)(Math.random()*10) + "");
-		 txtGame[z][x][y].setEditable(false);
-		 }
-		 }
-		 }
 		 this.setVisible(true);
 		 }
 		 public static void main(String[] args) {
