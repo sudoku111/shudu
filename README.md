@@ -107,4 +107,18 @@ public class Sudoku extends JFrame{
 		 }
 		 public static void main(String[] args) {
 		 new Sudoku();
-		 } }
+		 } 
+		
+		
+		public static String[][] readfromFile(String filename) throws FileNotFoundException {
+		String[][] s = new String[9][9];
+		File inputFile = new File(filename);
+		Scanner input = new Scanner(inputFile);
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				s[i][j] = input.next();
+			}
+		}
+		return s;
+
+	}}
