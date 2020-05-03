@@ -9,8 +9,8 @@ public class Sudoku extends JFrame {
 	private JPanel[] pnlGame;
 	private JTextField[][][] txtGame;
 
-         private ButtonGroup group;
-	 private int count;
+	private ButtonGroup group;
+	private int count;
 	 
 	public Sudoku() {
 		pnlGame = new JPanel[12];
@@ -36,12 +36,13 @@ public class Sudoku extends JFrame {
 			else if (i == 3) {
 				JButton btn1 = new JButton("新游戏"); // Create JButton object
 				btn1.addActionListener(new ActionListener() {
+					
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						String[][] n = new String[9][9];
-						
+						count++;
 						try {
-							n = readfromFile("1.txt"); // 从文件中读取题目
+							n = readfromFile(String.format("%d.txt", count)); // 从文件中读取题目
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						}
@@ -50,33 +51,39 @@ public class Sudoku extends JFrame {
 						for (int z = 0; z < 3; z++) {
 							for (int x = 0; x < 3; x++) {
 								for (int y = 0; y < 3; y++) {
-									if (n[x][y + 3 * z].equals("0"))
-										txtGame[z][x][y].setText(" ");
-									else
+									if (n[x][y + 3 * z].equals("0")) {
+										txtGame[z][x][y].setText("");
+										txtGame[z][x][y].setEditable(true);
+									} else {
 										txtGame[z][x][y].setText(n[x][y + 3 * z]);
-									txtGame[z][x][y].setEditable(false);
+										txtGame[z][x][y].setEditable(false);
+									}
 								}
 							}
 						}
 						for (int z = 3; z < 6; z++) {
 							for (int x = 0; x < 3; x++) {
 								for (int y = 0; y < 3; y++) {
-									if (n[x + 3][y + 3 * (z - 3)].equals("0"))
-										txtGame[z][x][y].setText(" ");
-									else
+									if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
+										txtGame[z][x][y].setText("");
+										txtGame[z][x][y].setEditable(true);
+									} else {
 										txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
-									txtGame[z][x][y].setEditable(false);
+										txtGame[z][x][y].setEditable(false);
+									}
 								}
 							}
 						}
 						for (int z = 6; z < 9; z++) {
 							for (int x = 0; x < 3; x++) {
 								for (int y = 0; y < 3; y++) {
-									if (n[x + 6][y + 3 * (z - 6)].equals("0"))
-										txtGame[z][x][y].setText(" ");
-									else
+									if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
+										txtGame[z][x][y].setText("");
+										txtGame[z][x][y].setEditable(true);
+									} else {
 										txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
-									txtGame[z][x][y].setEditable(false);
+										txtGame[z][x][y].setEditable(false);
+									}
 								}
 							}
 						}
@@ -86,12 +93,12 @@ public class Sudoku extends JFrame {
 				pnlGame[i].add(btn1);
 				this.add(pnlGame[i]);
 			} else if (i == 7) {
-				 group=new ButtonGroup();
-			 pnlGame[i] = new JPanel();
-			 addJRadioButton("易",i);
-			 addJRadioButton("中",i);
-			 addJRadioButton("难",i);
-			 this.add(pnlGame[i]);
+				group=new ButtonGroup();
+				 pnlGame[i] = new JPanel();
+				 addJRadioButton("易",i);
+				 addJRadioButton("中",i);
+				 addJRadioButton("难",i);
+				 this.add(pnlGame[i]);
 			} else {
 				JButton btn3 = new JButton("cundang"); // Create JButton object
 				btn3.addActionListener(new ActionListener() {
@@ -118,9 +125,42 @@ public class Sudoku extends JFrame {
 					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));// Set size and font
 					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);// set position
 					pnlGame[z + t].add(txtGame[z][x][y]);
+
 				}
 			}
 		}
+
+		PointerInfo pi = MouseInfo.getPointerInfo();
+		Point p = pi.getLocation();// 获取鼠标位置
+		int countFalse = 0;
+		for (int z = 0; z < 9; z++) {
+			for (int x = 0; x < 3; x++) {
+				for (int y = 0; y < 3; y++) {
+					if (p.getLocation().equals(txtGame[z][x][y].getLocation())) {
+						int num = Integer.parseInt(txtGame[z][x][y].getName());
+
+						for (int i = 0; i < 9; i++) {// 判断对错
+							for (int j = 0; j < 9; j++) {
+								if (!txtGame[z][i][j].getName().equals("")) {
+									if (num == Integer.parseInt(txtGame[z][i][j].getName()))
+										countFalse++;
+									break;
+								}
+							}
+						}
+						
+						Color color;
+						if (countFalse > 0) 
+							color = Color.red;
+						else
+							color = Color.WHITE;
+							txtGame[z][x][y].setBackground(color);
+					}
+				}
+			}
+		}
+		
+
 		this.setVisible(true);
 	}
 
@@ -140,27 +180,28 @@ public class Sudoku extends JFrame {
 		return s;
 
 	}
-	 private void addJRadioButton(final String text,int i) {
-			 JRadioButton radioButton=new JRadioButton(text);
-			 group.add(radioButton);
-			 pnlGame[i].add(radioButton);
-			 radioButton.addActionListener(new ActionListener() {
+	
+	private void addJRadioButton(final String text,int i) {
+		 JRadioButton radioButton=new JRadioButton(text);
+		 group.add(radioButton);
+		 pnlGame[i].add(radioButton);
+		 radioButton.addActionListener(new ActionListener() {
 
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					
-					if("易".equals(text))
-						count=0;
-					else if("中".equals(text))
-						count=10;
-					else if("难".equals(text))
-						count=20;
-					else count=0;
-					
-				}
-				 
-			 });
-			 
-		 }
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+
+				if("易".equals(text))
+					count=0;
+				else if("中".equals(text))
+					count=10;
+				else if("难".equals(text))
+					count=20;
+				else count=0;
+
+			}
+
+		 });
+
+	 }
 }
