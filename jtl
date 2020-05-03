@@ -7,11 +7,11 @@ import java.util.Scanner;
 
 public class Sudoku extends JFrame {
 	private JPanel[] pnlGame;
-	private JTextField[][][] txtGame;
+	private static JTextField[][][] txtGame;
 
 	private ButtonGroup group;
 	private int count;
-	private int key;
+	private static int key;
 
 	public Sudoku() {
 		pnlGame = new JPanel[12];
@@ -132,74 +132,25 @@ public class Sudoku extends JFrame {
 		}
 
 		this.setVisible(true);
-		
-		 while(end()){
-				check();}
-		                if(!end()) {
-				 JFrame end=new JFrame("结束"); //Create Frame
-				 end.setBounds(300, 200, 600, 500);
-				 end.setVisible(true);
-				 end.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-				 JLabel jl=new JLabel("You Win"); //create a label
-				  Container c=end.getContentPane(); //get the window
-				  c.add(jl); //add label to window
-				  c.setVisible(true);
-			 }
 
 	}
 
 	public static void main(String[] args) {
 		new Sudoku();
+
+		if (!end()) {
+			JFrame end = new JFrame("结束"); // Create Frame
+			end.setBounds(300, 200, 600, 500);
+			end.setVisible(true);
+			end.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			JLabel jl = new JLabel("You Win"); // create a label
+			Container c = end.getContentPane(); // get the window
+			c.add(jl); // add label to window
+			c.setVisible(true);
+		}
 	}
 
-	public void check() {
-		// 判断对错
-
-				for (int z = 0; z < 9; z++) {
-					for (int x = 0; x < 3; x++) {
-						for (int y = 0; y < 3; y++) {
-							JTextField txt = txtGame[z][x][y];
-							int b = z;
-							Key(txt);
-							if (key > 0) {
-								txt.addFocusListener(new FocusListener() {
-									int countFalse = 0;
-
-									public void focusGained(FocusEvent e) {
-
-										int num = Integer.parseInt(txt.getText());
-										for (int i = 0; i < 9; i++) {// 判断小九宫格
-											for (int j = 0; j < 9; j++) {
-												if (!txtGame[b][i][j].getText().isEmpty()) {
-													if (num == Integer.parseInt(txtGame[b][i][j].getText()))
-														countFalse++;
-													break;
-												}
-											}
-										}
-										
-										Color color;
-										if (countFalse > 0)
-											color = Color.red;
-										else
-											color = Color.WHITE;
-										txt.setBackground(color);
-
-									}
-
-									@Override
-									public void focusLost(FocusEvent e) {
-										// TODO Auto-generated method stub
-
-									}
-								});
-							}
-						}
-					}
-				}
-	}
-	
-	private boolean end() {
+	private static boolean end() {
 		int empty = 0;
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
@@ -250,27 +201,3 @@ public class Sudoku extends JFrame {
 		});
 
 	}
-
-	private void Key(JTextField txt) {
-		txt.addKeyListener(new KeyAdapter() {
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-				int code = e.getKeyCode();
-				if (code >= KeyEvent.VK_0 && code <= KeyEvent.VK_9)
-					key = 1;
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-		});
-	}
-}
