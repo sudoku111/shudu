@@ -129,10 +129,20 @@ public class Sudoku extends JFrame {
 				}
 			}
 		}
-
-		check();
-
 		this.setVisible(true);
+                 while(end()){
+		check();}
+                if(!end()) {
+		 JFrame end=new JFrame("结束"); //Create Frame
+		 end.setBounds(300, 200, 600, 500);
+		 end.setVisible(true);
+		 end.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		 JLabel jl=new JLabel("You Win"); //create a label
+		  Container c=end.getContentPane(); //get the window
+		  c.add(jl); //add label to window
+		  c.setVisible(true);
+	 }
+		
 	}
 
 	public static void main(String[] args) {
@@ -218,4 +228,13 @@ public class Sudoku extends JFrame {
 			}
 		}
 	}
+	 private boolean end() {
+			 int empty=0;
+			 for (int z = 0; z < 9; z++) {
+					for (int x = 0; x < 3; x++) {
+						for (int y = 0; y < 3; y++) {
+							JTextField txt = txtGame[z][x][y];
+							if(txt.getName().isEmpty())
+								empty++;}}}
+			 return empty!=0;
 }
