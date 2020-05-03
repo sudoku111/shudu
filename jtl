@@ -9,6 +9,9 @@ public class Sudoku extends JFrame {
 	private JPanel[] pnlGame;
 	private JTextField[][][] txtGame;
 
+         private ButtonGroup group;
+	 private int count;
+	 
 	public Sudoku() {
 		pnlGame = new JPanel[12];
 		txtGame = new JTextField[9][3][3];
@@ -83,16 +86,12 @@ public class Sudoku extends JFrame {
 				pnlGame[i].add(btn1);
 				this.add(pnlGame[i]);
 			} else if (i == 7) {
-				JButton btn2 = new JButton("提示"); // Create JButton object
-				btn2.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						System.out.print("tishi");
-					}
-				});
-				pnlGame[i] = new JPanel();
-				pnlGame[i].add(btn2);
-				this.add(pnlGame[i]);
+				 group=new ButtonGroup();
+			 pnlGame[i] = new JPanel();
+			 addJRadioButton("易",i);
+			 addJRadioButton("中",i);
+			 addJRadioButton("难",i);
+			 this.add(pnlGame[i]);
 			} else {
 				JButton btn3 = new JButton("cundang"); // Create JButton object
 				btn3.addActionListener(new ActionListener() {
@@ -141,4 +140,27 @@ public class Sudoku extends JFrame {
 		return s;
 
 	}
+	 private void addJRadioButton(final String text,int i) {
+			 JRadioButton radioButton=new JRadioButton(text);
+			 group.add(radioButton);
+			 pnlGame[i].add(radioButton);
+			 radioButton.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					
+					if("易".equals(text))
+						count=0;
+					else if("中".equals(text))
+						count=10;
+					else if("难".equals(text))
+						count=20;
+					else count=0;
+					
+				}
+				 
+			 });
+			 
+		 }
 }
