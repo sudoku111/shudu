@@ -11,7 +11,7 @@ public class Sudoku extends JFrame {
 
 	private ButtonGroup group;
 	private int count;
-	 
+
 	public Sudoku() {
 		pnlGame = new JPanel[12];
 		txtGame = new JTextField[9][3][3];
@@ -36,7 +36,7 @@ public class Sudoku extends JFrame {
 			else if (i == 3) {
 				JButton btn1 = new JButton("新游戏"); // Create JButton object
 				btn1.addActionListener(new ActionListener() {
-					
+
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						String[][] n = new String[9][9];
@@ -93,12 +93,12 @@ public class Sudoku extends JFrame {
 				pnlGame[i].add(btn1);
 				this.add(pnlGame[i]);
 			} else if (i == 7) {
-				group=new ButtonGroup();
-				 pnlGame[i] = new JPanel();
-				 addJRadioButton("易",i);
-				 addJRadioButton("中",i);
-				 addJRadioButton("难",i);
-				 this.add(pnlGame[i]);
+				group = new ButtonGroup();
+				pnlGame[i] = new JPanel();
+				addJRadioButton("易", i);
+				addJRadioButton("中", i);
+				addJRadioButton("难", i);
+				this.add(pnlGame[i]);
 			} else {
 				JButton btn3 = new JButton("cundang"); // Create JButton object
 				btn3.addActionListener(new ActionListener() {
@@ -130,36 +130,7 @@ public class Sudoku extends JFrame {
 			}
 		}
 
-		PointerInfo pi = MouseInfo.getPointerInfo();
-		Point p = pi.getLocation();// 获取鼠标位置
-		int countFalse = 0;
-		for (int z = 0; z < 9; z++) {
-			for (int x = 0; x < 3; x++) {
-				for (int y = 0; y < 3; y++) {
-					if (p.getLocation().equals(txtGame[z][x][y].getLocation())) {
-						int num = Integer.parseInt(txtGame[z][x][y].getName());
-
-						for (int i = 0; i < 9; i++) {// 判断对错
-							for (int j = 0; j < 9; j++) {
-								if (!txtGame[z][i][j].getName().equals("")) {
-									if (num == Integer.parseInt(txtGame[z][i][j].getName()))
-										countFalse++;
-									break;
-								}
-							}
-						}
-						
-						Color color;
-						if (countFalse > 0) 
-							color = Color.red;
-						else
-							color = Color.WHITE;
-							txtGame[z][x][y].setBackground(color);
-					}
-				}
-			}
-		}
-		
+		check();
 
 		this.setVisible(true);
 	}
@@ -180,28 +151,71 @@ public class Sudoku extends JFrame {
 		return s;
 
 	}
-	
-	private void addJRadioButton(final String text,int i) {
-		 JRadioButton radioButton=new JRadioButton(text);
-		 group.add(radioButton);
-		 pnlGame[i].add(radioButton);
-		 radioButton.addActionListener(new ActionListener() {
+
+	private void addJRadioButton(final String text, int i) {
+		JRadioButton radioButton = new JRadioButton(text);
+		group.add(radioButton);
+		pnlGame[i].add(radioButton);
+		radioButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 
-				if("易".equals(text))
-					count=0;
-				else if("中".equals(text))
-					count=10;
-				else if("难".equals(text))
-					count=20;
-				else count=0;
+				if ("易".equals(text))
+					count = 0;
+				else if ("中".equals(text))
+					count = 10;
+				else if ("难".equals(text))
+					count = 20;
+				else
+					count = 0;
 
 			}
 
-		 });
+		});
 
-	 }
+	}
+
+	public void check() {
+		for (int z = 0; z < 9; z++) {
+			for (int x = 0; x < 3; x++) {
+				for (int y = 0; y < 3; y++) {
+					JTextField txt = txtGame[z][x][y];
+					txt.addFocusListener(new FocusListener() {
+						int countFalse = 0;
+
+						public void focusGained(FocusEvent e) {
+
+							int num = Integer.parseInt(txt.getName());
+
+							for (int i = 0; i < 9; i++) {// 判断对错
+								for (int j = 0; j < 9; j++) {
+									if (!txt.getName().equals("")) {
+										if (num == Integer.parseInt(txt.getName()))
+											countFalse++;
+										break;
+									}
+								}
+							}
+
+							Color color;
+							if (countFalse > 0)
+								color = Color.red;
+							else
+								color = Color.WHITE;
+							txt.setBackground(color);
+
+						}
+
+						@Override
+						public void focusLost(FocusEvent e) {
+							// TODO Auto-generated method stub
+
+						}
+					});
+				}
+			}
+		}
+	}
 }
