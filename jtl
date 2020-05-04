@@ -12,7 +12,7 @@ public class Sudoku extends JFrame {
 	private ButtonGroup group;
 	private int count;
 	private static int key;
-	  private static int t=3;
+	private static int t=3;
 
 	public Sudoku() {
 		pnlGame = new JPanel[12];
@@ -102,6 +102,7 @@ public class Sudoku extends JFrame {
 				addJRadioButton("难", i);
 				this.add(pnlGame[i]);
 			} else {
+				
 				pnlGame[i] = new JPanel();
 				JButton btn3 = new JButton("提示"); // Create JButton object
 				JTextField time=new JTextField();
@@ -111,7 +112,7 @@ public class Sudoku extends JFrame {
 				btn3.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						if(t>0) {
+					if(t>0) {
 						t--;
 						time.setEditable(true);
 						time.setText(String.valueOf(t));
@@ -123,6 +124,16 @@ public class Sudoku extends JFrame {
 							e1.printStackTrace();
 						}
 						//获得需要提示的txt位置
+						for (int z = 0; z < 9; z++) {
+							for (int x = 0; x < 3; x++) {
+								for (int y = 0; y < 3; y++) {
+									if (txtGame[z][x][y].getLocation().equals(MouseLocation.mouse())){
+										txtGame[z][x][y].setText(n[Cell.getX(z, x)][Cell.getY(z, y)]);
+										txtGame[z][x][y].setEditable(false);
+							}
+							}
+						}
+					}
 						
 						//显示提示的答案并且不可更改
 //						if(z<3) {
@@ -137,8 +148,7 @@ public class Sudoku extends JFrame {
 			//				txtGame[z][x][y].setText(n[x+6][y + 3 * (z-6)]);
 				//			txtGame[z][x][y].setEditable(false);
 					//	}
-						txtGame[0][0][0].setText(n[0][0]);
-						txtGame[0][0][0].setEditable(false);
+						
 				        }
 						else {
 							JFrame zero = new JFrame("错误"); // Create Frame
@@ -151,27 +161,25 @@ public class Sudoku extends JFrame {
 							c.setVisible(true);
 						}
 					}
-					
 				});
-				
 				pnlGame[i].add(btn3);
 				this.add(pnlGame[i]);
 			}
-		
+
 		}
 
 		// 填数独
-		int t = 0;
+		int tt = 0;
 		for (int z = 0; z < 9; z++) {
-			if ((z + 1 + t) % 4 == 0)
-				t++;
+			if ((z + 1 + tt) % 4 == 0)
+				tt++;
 			for (int x = 0; x < 3; x++) {
 				for (int y = 0; y < 3; y++) {
 					txtGame[z][x][y] = new JTextField();
 					txtGame[z][x][y].setBorder(BorderFactory.createEtchedBorder());
 					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));// Set size and font
 					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);// set position
-					pnlGame[z + t].add(txtGame[z][x][y]);
+					pnlGame[z + tt].add(txtGame[z][x][y]);
 
 				}
 			}
@@ -184,6 +192,10 @@ public class Sudoku extends JFrame {
 	public static void main(String[] args) {
 		new Sudoku();
 
+		int mm = 0;
+		while (end()) {
+			mm++;
+		}
 		if (!end()) {
 			JFrame end = new JFrame("结束"); // Create Frame
 			end.setBounds(300, 200, 600, 500);
@@ -223,6 +235,9 @@ public class Sudoku extends JFrame {
 
 	}
 
+
+
+
 	private void addJRadioButton(final String text, int i) {
 		JRadioButton radioButton = new JRadioButton(text);
 		group.add(radioButton);
@@ -247,3 +262,27 @@ public class Sudoku extends JFrame {
 		});
 
 	}
+
+	private static void Key(JTextField txt) {
+		txt.addKeyListener(new KeyAdapter() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				int code = e.getKeyCode();
+				if (code >= KeyEvent.VK_0 && code <= KeyEvent.VK_9)
+					key = 1;
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+	}
+}
