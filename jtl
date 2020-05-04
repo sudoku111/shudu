@@ -34,7 +34,7 @@ public class Sudoku extends JFrame {
 
     public void gridInit() {
         this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
-        this.setSize(400, 300);
+        this.setSize(800, 600);
         this.setResizable(false);
         this.setTitle("Suduko");
         this.setLayout(new GridLayout(3, 4)); // set layout
@@ -46,64 +46,123 @@ public class Sudoku extends JFrame {
                 pnlGame[i].setLayout(new GridLayout(3, 3));
                 this.add(pnlGame[i]);
             } else if (i == 3) {
-                JButton btn1 = new JButton("新游戏"); // Create JButton object
-                btn1.addActionListener(new ActionListener() {
+            	JButton btn1 = new JButton("新游戏"); // 新游戏按钮
+            	JButton btn2 = new JButton("存档"); //存档按钮
+            	JButton btn3 = new JButton("读档"); //读档按钮
+            	btn1.addActionListener(new ActionListener() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        String[][] n = new String[9][9];
-                        count++;
-                        try {
-                            n = readfromFile(String.format("%d.txt", count)); // 从文件中读取题目
-                        } catch (FileNotFoundException e1) {
-                            e1.printStackTrace();
-                        }
+            		@Override
+            		public void actionPerformed(ActionEvent e) {
+            			String[][] n = new String[9][9];
+            			count++;
+            			try {
+            				n = readfromFile(String.format("%d.txt", count)); // 从文件中读取题目
+            			} catch (FileNotFoundException e1) {
+            				e1.printStackTrace();
+            			}
 
-                        // fill some numbers randomly
-                        for (int z = 0; z < 3; z++) {
-                            for (int x = 0; x < 3; x++) {
-                                for (int y = 0; y < 3; y++) {
-                                    if (n[x][y + 3 * z].equals("0")) {
-                                        txtGame[z][x][y].setText("");
-                                        txtGame[z][x][y].setEditable(true);
-                                    } else {
-                                        txtGame[z][x][y].setText(n[x][y + 3 * z]);
-                                        txtGame[z][x][y].setEditable(false);
-                                    }
-                                }
-                            }
-                        }
-                        for (int z = 3; z < 6; z++) {
-                            for (int x = 0; x < 3; x++) {
-                                for (int y = 0; y < 3; y++) {
-                                    if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
-                                        txtGame[z][x][y].setText("");
-                                        txtGame[z][x][y].setEditable(true);
-                                    } else {
-                                        txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
-                                        txtGame[z][x][y].setEditable(false);
-                                    }
-                                }
-                            }
-                        }
-                        for (int z = 6; z < 9; z++) {
-                            for (int x = 0; x < 3; x++) {
-                                for (int y = 0; y < 3; y++) {
-                                    if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
-                                        txtGame[z][x][y].setText("");
-                                        txtGame[z][x][y].setEditable(true);
-                                    } else {
-                                        txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
-                                        txtGame[z][x][y].setEditable(false);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-                pnlGame[i] = new JPanel();
-                pnlGame[i].add(btn1);
-                this.add(pnlGame[i]);
+            			// fill some numbers randomly
+            			for (int z = 0; z < 3; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x][y + 3 * z].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x][y + 3 * z]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            			for (int z = 3; z < 6; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            			for (int z = 6; z < 9; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            		}
+            	});
+            	btn2.addActionListener(new ActionListener() {
+            		@Override
+            		public void actionPerformed(ActionEvent e) {
+            			
+            		}});
+            	btn3.addActionListener(new ActionListener() {
+            		@Override
+            		public void actionPerformed(ActionEvent e) {
+            			String[][] n = new String[9][9];
+            			try {
+            				n=readfromFile("save.txt");
+            			} catch (FileNotFoundException e1) {
+            				// TODO Auto-generated catch block
+            				e1.printStackTrace();
+            			}
+            			for (int z = 0; z < 3; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x][y + 3 * z].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x][y + 3 * z]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            			for (int z = 3; z < 6; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            			for (int z = 6; z < 9; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            		}});
+            	pnlGame[i] = new JPanel();
+            	pnlGame[i].add(btn2);
+            	pnlGame[i].add(btn3);
+            	pnlGame[i].add(btn1);
+            	this.add(pnlGame[i]);
             } else if (i == 7) {
                 group = new ButtonGroup();
                 pnlGame[i] = new JPanel();
