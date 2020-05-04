@@ -12,6 +12,7 @@ public class Sudoku extends JFrame {
 	private ButtonGroup group;
 	private int count;
 	private static int key;
+	  private static int t=3;
 
 	public Sudoku() {
 		pnlGame = new JPanel[12];
@@ -101,17 +102,62 @@ public class Sudoku extends JFrame {
 				addJRadioButton("难", i);
 				this.add(pnlGame[i]);
 			} else {
-				JButton btn3 = new JButton("cundang"); // Create JButton object
+				pnlGame[i] = new JPanel();
+				JButton btn3 = new JButton("提示"); // Create JButton object
+				JTextField time=new JTextField();
+				time.setText(String.valueOf(t));
+				time.setEditable(false);
+				pnlGame[i].add(time);
 				btn3.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						System.out.print("cundanag");
+						if(t>0) {
+						t--;
+						time.setEditable(true);
+						time.setText(String.valueOf(t));
+						time.setEditable(false);
+						String[][] n = new String[9][9];
+						try {
+							n = readfromFile(String.format("%d.txt", count+30)); // 从文件中读取答案
+						} catch (FileNotFoundException e1) {
+							e1.printStackTrace();
+						}
+						//获得需要提示的txt位置
+						
+						//显示提示的答案并且不可更改
+//						if(z<3) {
+	//					txtGame[z][x][y].setText(n[x][y + 3 * z]);
+		//				txtGame[z][x][y].setEditable(false);
+			//		}
+				//		else if(z<6) {
+					//		txtGame[z][x][y].setText(n[x+3][y + 3 * (z-3)]);
+//							txtGame[z][x][y].setEditable(false);
+	//					}
+		//				else {
+			//				txtGame[z][x][y].setText(n[x+6][y + 3 * (z-6)]);
+				//			txtGame[z][x][y].setEditable(false);
+					//	}
+						txtGame[0][0][0].setText(n[0][0]);
+						txtGame[0][0][0].setEditable(false);
+				        }
+						else {
+							JFrame zero = new JFrame("错误"); // Create Frame
+							zero.setBounds(300, 200, 600, 500);
+							zero.setVisible(true);
+							zero.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+							JLabel jl2 = new JLabel("你的提示次数已用完"); // create a label
+							Container c = zero.getContentPane(); // get the window
+							c.add(jl2); // add label to window
+							c.setVisible(true);
+						}
 					}
+					
 				});
-				pnlGame[i] = new JPanel();
+				
 				pnlGame[i].add(btn3);
 				this.add(pnlGame[i]);
 			}
+		
 		}
 
 		// 填数独
