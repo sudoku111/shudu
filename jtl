@@ -7,391 +7,322 @@ import java.io.PrintWriter;
 import java.util.Scanner;
 
 public class Sudoku extends JFrame {
-	private JPanel[] pnlGame;
-	private static JTextField[][][] txtGame;
-	private JTextField lastFocusTextFiled;
-	private FocusListener textFocusListener = new FocusListener() {
-		@Override
-		public void focusGained(FocusEvent e) {
-			lastFocusTextFiled = (JTextField) e.getComponent();
-		}
+    private JPanel[] pnlGame;
+    private static JTextField[][][] txtGame;
+    private JTextField lastFocusTextFiled;
+    private FocusListener textFocusListener = new FocusListener() {
+        @Override
+        public void focusGained(FocusEvent e) {
+            lastFocusTextFiled = (JTextField) e.getComponent();
+        }
 
-		@Override
-		public void focusLost(FocusEvent e) {
-			lastFocusTextFiled = (JTextField) e.getComponent();
-		}
-	};
-	private ButtonGroup group;
-	private int count;
-	private static int key;
-	private static int t = 3;
+        @Override
+        public void focusLost(FocusEvent e) {
+            lastFocusTextFiled = (JTextField) e.getComponent();
+        }
+    };
+    private ButtonGroup group;
+    private int count;
+    private static int key;
+    private static int t = 3;
 
-	public Sudoku() {
-		pnlGame = new JPanel[12];
-		txtGame = new JTextField[9][3][3];
-		gridInit();
-	}
+    public Sudoku() {
+        pnlGame = new JPanel[12];
+        txtGame = new JTextField[9][3][3];
+        gridInit();
+    }
 
-	public void gridInit() {
-		this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
-		this.setSize(800, 600);
-		this.setResizable(false);
-		this.setTitle("Suduko");
-		this.setLayout(new GridLayout(3, 4)); // set layout
+    public void gridInit() {
+        this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
+        this.setSize(800, 600);
+        this.setResizable(false);
+        this.setTitle("Suduko");
+        this.setLayout(new GridLayout(3, 4)); // set layout
 
-		for (int i = 0; i < 12; i++) {
-			if ((i + 1) % 4 != 0) {
-				pnlGame[i] = new JPanel();
-				pnlGame[i].setBorder(BorderFactory.createLineBorder(Color.black)); // use border to draw the grid
-				pnlGame[i].setLayout(new GridLayout(3, 3));
-				this.add(pnlGame[i]);
-			} else if (i == 3) {
-				JButton btn1 = new JButton("新游戏"); // 新游戏按钮
-				JButton btn2 = new JButton("存档"); // 存档按钮
-				JButton btn3 = new JButton("读档"); // 读档按钮
-				btn1.addActionListener(new ActionListener() {
+        for (int i = 0; i < 12; i++) {
+            if ((i + 1) % 4 != 0) {
+                pnlGame[i] = new JPanel();
+                pnlGame[i].setBorder(BorderFactory.createLineBorder(Color.black)); // use border to draw the grid
+                pnlGame[i].setLayout(new GridLayout(3, 3));
+                this.add(pnlGame[i]);
+            } else if (i == 3) {
+            	JButton btn1 = new JButton("新游戏"); // 新游戏按钮
+            	JButton btn2 = new JButton("存档"); //存档按钮
+            	JButton btn3 = new JButton("读档"); //读档按钮
+            	btn1.addActionListener(new ActionListener() {
 
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						String[][] n = new String[9][9];
-						count++;
-						try {
-							n = readfromFile(String.format("%d.txt", count)); // 从文件中读取题目
-						} catch (FileNotFoundException e1) {
-							e1.printStackTrace();
-						}
+            		@Override
+            		public void actionPerformed(ActionEvent e) {
+            			String[][] n = new String[9][9];
+            			count++;
+            			try {
+            				n = readfromFile(String.format("%d.txt", count)); // 从文件中读取题目
+            			} catch (FileNotFoundException e1) {
+            				e1.printStackTrace();
+            			}
 
-						// fill some numbers randomly
-						for (int z = 0; z < 3; z++) {
-							for (int x = 0; x < 3; x++) {
-								for (int y = 0; y < 3; y++) {
-									if (n[x][y + 3 * z].equals("0")) {
-										txtGame[z][x][y].setText("");
-										txtGame[z][x][y].setEditable(true);
-									} else {
-										txtGame[z][x][y].setText(n[x][y + 3 * z]);
-										txtGame[z][x][y].setEditable(false);
-									}
-								}
-							}
-						}
-						for (int z = 3; z < 6; z++) {
-							for (int x = 0; x < 3; x++) {
-								for (int y = 0; y < 3; y++) {
-									if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
-										txtGame[z][x][y].setText("");
-										txtGame[z][x][y].setEditable(true);
-									} else {
-										txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
-										txtGame[z][x][y].setEditable(false);
-									}
-								}
-							}
-						}
-						for (int z = 6; z < 9; z++) {
-							for (int x = 0; x < 3; x++) {
-								for (int y = 0; y < 3; y++) {
-									if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
-										txtGame[z][x][y].setText("");
-										txtGame[z][x][y].setEditable(true);
-									} else {
-										txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
-										txtGame[z][x][y].setEditable(false);
-									}
-								}
-							}
-						}
-					}
-				});
-				btn2.addActionListener(new ActionListener() {// 存档
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						try {
+            			// fill some numbers randomly
+            			for (int z = 0; z < 3; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x][y + 3 * z].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x][y + 3 * z]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            			for (int z = 3; z < 6; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            			for (int z = 6; z < 9; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            		}
+            	});
+            	btn2.addActionListener(new ActionListener() {
+            		@Override
+            		public void actionPerformed(ActionEvent e) {
+            			try {
 							SaveIntoFile(txtGame);
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						}
 
-					}
-				});
-				btn3.addActionListener(new ActionListener() {// 读档
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						String[][] n = new String[9][9];
-						try {
-							n = readfromFile("save.txt");
-						} catch (FileNotFoundException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-						for (int z = 0; z < 3; z++) {
-							for (int x = 0; x < 3; x++) {
-								for (int y = 0; y < 3; y++) {
-									if (n[x][y + 3 * z].equals("0")) {
-										txtGame[z][x][y].setText("");
-										txtGame[z][x][y].setEditable(true);
-									} else {
-										txtGame[z][x][y].setText(n[x][y + 3 * z]);
-										txtGame[z][x][y].setEditable(false);
-									}
-								}
-							}
-						}
-						for (int z = 3; z < 6; z++) {
-							for (int x = 0; x < 3; x++) {
-								for (int y = 0; y < 3; y++) {
-									if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
-										txtGame[z][x][y].setText("");
-										txtGame[z][x][y].setEditable(true);
-									} else {
-										txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
-										txtGame[z][x][y].setEditable(false);
-									}
-								}
-							}
-						}
-						for (int z = 6; z < 9; z++) {
-							for (int x = 0; x < 3; x++) {
-								for (int y = 0; y < 3; y++) {
-									if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
-										txtGame[z][x][y].setText("");
-										txtGame[z][x][y].setEditable(true);
-									} else {
-										txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
-										txtGame[z][x][y].setEditable(false);
-									}
-								}
-							}
-						}
-					}
-				});
-				pnlGame[i] = new JPanel();
-				pnlGame[i].add(btn2);
-				pnlGame[i].add(btn3);
-				pnlGame[i].add(btn1);
-				this.add(pnlGame[i]);
-			} else if (i == 7) {
-				group = new ButtonGroup();
-				pnlGame[i] = new JPanel();
-				addJRadioButton("易", i);
-				addJRadioButton("中", i);
-				addJRadioButton("难", i);
-				this.add(pnlGame[i]);
-			} else {
+            		}});
+            	btn3.addActionListener(new ActionListener() {
+            		@Override
+            		public void actionPerformed(ActionEvent e) {
+            			String[][] n = new String[9][9];
+            			try {
+            				n=readfromFile("save.txt");
+            			} catch (FileNotFoundException e1) {
+            				// TODO Auto-generated catch block
+            				e1.printStackTrace();
+            			}
+            			for (int z = 0; z < 3; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x][y + 3 * z].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x][y + 3 * z]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            			for (int z = 3; z < 6; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            			for (int z = 6; z < 9; z++) {
+            				for (int x = 0; x < 3; x++) {
+            					for (int y = 0; y < 3; y++) {
+            						if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
+            							txtGame[z][x][y].setText("");
+            							txtGame[z][x][y].setEditable(true);
+            						} else {
+            							txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
+            							txtGame[z][x][y].setEditable(false);
+            						}
+            					}
+            				}
+            			}
+            		}});
+            	pnlGame[i] = new JPanel();
+            	pnlGame[i].add(btn2);
+            	pnlGame[i].add(btn3);
+            	pnlGame[i].add(btn1);
+            	this.add(pnlGame[i]);
+            } else if (i == 7) {
+                group = new ButtonGroup();
+                pnlGame[i] = new JPanel();
+                addJRadioButton("易", i);
+                addJRadioButton("中", i);
+                addJRadioButton("难", i);
+                this.add(pnlGame[i]);
+            } else {
 
-				pnlGame[i] = new JPanel();
-				JButton btn3 = new JButton("提示"); // Create JButton object
-				JTextField time = new JTextField();
-				time.setText(String.valueOf(t));
-				time.setEditable(false);
-				pnlGame[i].add(time);
-				btn3.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						if (lastFocusTextFiled == null) {
-							System.err.println("Please select a text field");
-							return;
-						}
+                pnlGame[i] = new JPanel();
+                JButton btn3 = new JButton("提示"); // Create JButton object
+                JTextField time = new JTextField();
+                time.setText(String.valueOf(t));
+                time.setEditable(false);
+                pnlGame[i].add(time);
+                btn3.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (lastFocusTextFiled == null) {
+                            System.err.println("Please select a text field");
+                            return;
+                        }
 
-						if (t > 0) {
-							t--;
-							time.setEditable(true);
-							time.setText(String.valueOf(t));
-							time.setEditable(false);
-							String[][] n = new String[9][9];
-							try {
-								n = readfromFile(String.format("%d.txt", count + 30)); // 从文件中读取答案
-							} catch (FileNotFoundException e1) {
-								e1.printStackTrace();
-							}
-							// 获得需要提示的txt位置
-							lastFocusTextFiled.setText("");// TODO
-							for (int z = 0; z < 9; z++) {
-								for (int x = 0; x < 3; x++) {
-									for (int y = 0; y < 3; y++) {
-										if (txtGame[z][x][y] == lastFocusTextFiled) {
-											txtGame[z][x][y].setText(n[Cell.getX(z, x)][Cell.getY(z, y)]);
-											txtGame[z][x][y].setEditable(false);
-										}
-									}
-								}
-							}
+                        if (t > 0) {
+                            t--;
+                            time.setEditable(true);
+                            time.setText(String.valueOf(t));
+                            time.setEditable(false);
+                            String[][] n = new String[9][9];
+                            try {
+                                n = readfromFile(String.format("%d.txt", count + 30)); // 从文件中读取答案
+                            } catch (FileNotFoundException e1) {
+                                e1.printStackTrace();
+                            }
+                            //获得需要提示的txt位置
+                            lastFocusTextFiled.setText("");//TODO
+                            for (int z = 0; z < 9; z++) {
+    							for (int x = 0; x < 3; x++) {
+    								for (int y = 0; y < 3; y++) {
+    									if (txtGame[z][x][y]==lastFocusTextFiled){
+    										txtGame[z][x][y].setText(n[Cell.getX(z, x)][Cell.getY(z, y)]);
+    										txtGame[z][x][y].setEditable(false);
+    							}
+    							}
+    						}
+    					}
+                            
 
-						} else {
-							JFrame zero = new JFrame("错误"); // Create Frame
-							zero.setBounds(300, 200, 600, 500);
-							zero.setVisible(true);
-							zero.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-							JLabel jl2 = new JLabel("你的提示次数已用完"); // create a label
-							Container c = zero.getContentPane(); // get the window
-							c.add(jl2); // add label to window
-							c.setVisible(true);
-						}
-					}
-				});
-				pnlGame[i].add(btn3);
-				this.add(pnlGame[i]);
-			}
+                        } else {
+                            JDialog dialog = new JDialog(); // Create Frame
+                            dialog.setBounds(300, 200, 300, 200);
+                            dialog.setVisible(true);
+                            JLabel jl2 = new JLabel("你的提示次数已用完，点击确定继续"); // create a label
+                            final JButton but=new JButton("确定");
+                            dialog.setModal(true);
+                            dialog.setLayout(new FlowLayout());
+                            dialog.add(jl2);
+                            dialog.add(but);
+                            but.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                	dialog.dispose();
+                                }});
+                        }
+                    }
+                });
+                      
+                pnlGame[i].add(btn3);
+                this.add(pnlGame[i]);
+            }
 
-		}
+        }
 
-		// 填数独
-		int tt = 0;
-		for (int z = 0; z < 9; z++) {
-			if ((z + 1 + tt) % 4 == 0)
-				tt++;
-			for (int x = 0; x < 3; x++) {
-				for (int y = 0; y < 3; y++) {
-					txtGame[z][x][y] = new JTextField();
-					txtGame[z][x][y].addFocusListener(textFocusListener);
-					txtGame[z][x][y].setBorder(BorderFactory.createEtchedBorder());
-					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));// Set size and font
-					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);// set position
-					pnlGame[z + tt].add(txtGame[z][x][y]);
+        // 填数独
+        int tt = 0;
+        for (int z = 0; z < 9; z++) {
+            if ((z + 1 + tt) % 4 == 0)
+                tt++;
+            for (int x = 0; x < 3; x++) {
+                for (int y = 0; y < 3; y++) {
+                    txtGame[z][x][y] = new JTextField();
+                    txtGame[z][x][y].addFocusListener(textFocusListener);
+                    txtGame[z][x][y].setBorder(BorderFactory.createEtchedBorder());
+                    txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));// Set size and font
+                    txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);// set position
+                    pnlGame[z + tt].add(txtGame[z][x][y]);
 
-				}
-			}
-		}
+                }
+            }
+        }
+
+        
+       
+        
+        this.setVisible(true);
+
+    }
+
+    public static void main(String[] args) {
+        new Sudoku();
+
+        int mm = 0;
+        while (end()) {
+            mm++;
+        }
+        if (!end()) {
+        	JDialog dialog = new JDialog(); // Create Frame
+            dialog.setBounds(300, 200, 300, 200);
+            dialog.setVisible(true);
+            JLabel jl2 = new JLabel("游戏结束！点击确定继续"); // create a label
+            final JButton but=new JButton("确定");
+            dialog.setModal(true);
+            dialog.setLayout(new FlowLayout());
+            dialog.add(jl2);
+            dialog.add(but);
+            but.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                	dialog.dispose();
+                }});
+        
+        }
+    }
+
+    private static boolean end() {
+        int empty = 0;
+        for (int z = 0; z < 9; z++) {
+            for (int x = 0; x < 3; x++) {
+                for (int y = 0; y < 3; y++) {
+                    JTextField txt = txtGame[z][x][y];
+                    if (txt.getText().isEmpty())
+                        empty++;
+                }
+            }
+        }
+        return empty != 0;
+    }
+
+    public static String[][] readfromFile(String filename) throws FileNotFoundException {
+        String[][] s = new String[9][9];
+        File inputFile = new File(filename);
+        Scanner input = new Scanner(inputFile);
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                s[i][j] = input.next();
+            }
+        }
+        return s;
+
+    }
 
 
-		this.setVisible(true);
+   
+	
 
-	}
-
-	public static void check() {// 判断对错
-		for (int z = 0; z < 9; z++) {
-			for (int x = 0; x < 3; x++) {
-				for (int y = 0; y < 3; y++) {
-					JTextField txt = txtGame[z][x][y];
-					int b = z;
-					Key(txt);
-					if (key > 0) {
-						txt.addFocusListener(new FocusListener() {
-							int countFalse = 0;
-
-							public void focusGained(FocusEvent e) {
-
-								int num = Integer.parseInt(txt.getText());
-								for (int i = 0; i < 3; i++) {// 判断小九宫格
-									for (int j = 0; j < 3; j++) {
-										if (!txtGame[b][i][j].getText().isEmpty()) {
-											if (num == Integer.parseInt(txtGame[b][i][j].getText()))
-												countFalse++;
-											break;
-										}
-									}
-								}
-
-								Color color;
-								if (countFalse > 0)
-									color = Color.red;
-								else
-									color = Color.WHITE;
-								txt.setBackground(color);
-
-							}
-
-							@Override
-							public void focusLost(FocusEvent e) {
-								// TODO Auto-generated method stub
-
-							}
-						});
-					}
-				}
-			}
-		}
-	}
-
-	private static void Key(JTextField txt) {
-		txt.addKeyListener(new KeyAdapter() {
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-				int code = e.getKeyCode();
-				if (code >= KeyEvent.VK_0 && code <= KeyEvent.VK_9)
-					key = 1;
-				if (code == KeyEvent.VK_BACK_SPACE)
-					key = 2;
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-		});
-	}
-
-	public static void main(String[] args) {
-		new Sudoku();
-
-		int mm = 0;
-		while (end()) {
-			mm++;
-		}
-		if (!end()) {
-			JFrame end = new JFrame("结束"); // Create Frame
-			end.setBounds(300, 200, 600, 500);
-			end.setVisible(true);
-			end.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			JLabel jl = new JLabel("You Win"); // create a label
-			Container c = end.getContentPane(); // get the window
-			c.add(jl); // add label to window
-			c.setVisible(true);
-		}
-	}
-
-	private static boolean end() {
-		int empty = 0;
-		for (int z = 0; z < 9; z++) {
-			for (int x = 0; x < 3; x++) {
-				for (int y = 0; y < 3; y++) {
-					JTextField txt = txtGame[z][x][y];
-					if (txt.getText().isEmpty())
-						empty++;
-				}
-			}
-		}
-		return empty != 0;
-	}
-
-	public static String[][] readfromFile(String filename) throws FileNotFoundException {
-		String[][] s = new String[9][9];
-		File inputFile = new File(filename);
-		Scanner input = new Scanner(inputFile);
-		for (int i = 0; i < 9; i++) {
-			for (int j = 0; j < 9; j++) {
-				s[i][j] = input.next();
-			}
-		}
-		return s;
-
-	}
-
-	public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {
-		String[][] s = new String[9][9];
-		File outputFile = new File("save.txt");
-		for (int z = 0; z < 9; z++) {
-			for (int x = 0; x < 3; x++) {
-				for (int y = 0; y < 3; y++) {
-					if (!tf[z][x][y].equals(""))
-						s[Cell.getX(z, x)][Cell.getY(z, y)] = tf[z][x][y].getText();
-					else
-						s[Cell.getX(z, x)][Cell.getY(z, y)] = "0";
-
-				}
-			}
-		}
-		PrintWriter output = new PrintWriter(outputFile);
-		output.print(s);
-
-	}
 
 	private void addJRadioButton(final String text, int i) {
 		JRadioButton radioButton = new JRadioButton(text);
@@ -418,3 +349,49 @@ public class Sudoku extends JFrame {
 
 	}
 
+	private static void Key(JTextField txt) {
+		txt.addKeyListener(new KeyAdapter() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				int code = e.getKeyCode();
+				if (code >= KeyEvent.VK_0 && code <= KeyEvent.VK_9)
+					key = 1;
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+	}
+
+public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {
+	String[][] s = new String[9][9];
+	
+	for (int z = 0; z < 9; z++) {
+		for (int x = 0; x < 3; x++) {
+			for (int y = 0; y < 3; y++) {
+				if (!tf[z][x][y].getText().isEmpty())
+					s[Cell.getX(z, x)][Cell.getY(z, y)] = tf[z][x][y].getText();
+				else
+					s[Cell.getX(z, x)][Cell.getY(z, y)] = "0";
+
+			}
+		}
+	}
+	PrintWriter output = new PrintWriter("save.txt");
+	for(int i=0;i<9;i++) {
+		for(int j=0;j<9;j++) {
+	output.print(s[i][j]+"  ");
+	}
+		 output.println();}
+    output.close();
+}
+}
