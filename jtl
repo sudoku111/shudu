@@ -1,7 +1,8 @@
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.JTextComponent;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -10,11 +11,19 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
+/**
+ * 
+ * @author hjq&jtl
+ *
+ */
 public class Sudoku extends JFrame {
 	private JPanel[] pnlGame;
 	private static JTextField[][][] txtGame;
 	private JTextField lastFocusTextFiled;
-	private static JTextField testtxt;
+	private static JTextField lastDocumentListener;
+	private static JTextField focus;
+	private static int row, col;
+	private static int[][] change;
 
 	private FocusListener textFocusListener = new FocusListener() {
 		@Override
@@ -28,6 +37,30 @@ public class Sudoku extends JFrame {
 		}
 	};
 
+//	private static DocumentListener testDocumentListener = new DocumentListener() {
+//		@Override
+//		public void removeUpdate(DocumentEvent e) {
+
+//		}
+//
+//		@Override
+	// public void insertUpdate(DocumentEvent e) {
+
+	// try {
+	// lastDocumentListener.setText(e.getDocument().getText(e.getDocument().getStartPosition().getOffset(),
+	// e.getDocument().getLength()));
+	// } catch (BadLocationException ex) {
+	// ex.printStackTrace();
+	// }
+	// }
+
+	// @Override
+	// public void changedUpdate(DocumentEvent e) {
+//
+	// }
+//
+//	};
+
 	private ButtonGroup group;
 	private int count;
 	private static int key;
@@ -37,21 +70,6 @@ public class Sudoku extends JFrame {
 		pnlGame = new JPanel[12];
 		txtGame = new JTextField[9][3][3];
 		gridInit();
-		check();
-	}
-
-	static class Swing_OnValueChanged implements DocumentListener { 
-		public void changedUpdate(DocumentEvent e) {
-			testtxt = (JTextField) e.getDocument();
-		}
-
-		public void insertUpdate(DocumentEvent e) {
-
-		}
-
-		public void removeUpdate(DocumentEvent e) {
-
-		}
 	}
 
 	public void gridInit() {
@@ -68,9 +86,9 @@ public class Sudoku extends JFrame {
 				pnlGame[i].setLayout(new GridLayout(3, 3));
 				this.add(pnlGame[i]);
 			} else if (i == 3) {
-				JButton btn1 = new JButton("新游戏"); // 新游戏按钮
-				JButton btn2 = new JButton("存档"); // 存档按钮
-				JButton btn3 = new JButton("读档"); // 读档按钮
+				JButton btn1 = new JButton("新游戏"); /**新游戏按钮*/
+				JButton btn2 = new JButton("存档"); /**存档按钮*/
+				JButton btn3 = new JButton("读档"); /**读档按钮*/
 				btn1.addActionListener(new ActionListener() {
 
 					@Override
@@ -78,7 +96,7 @@ public class Sudoku extends JFrame {
 						String[][] n = new String[9][9];
 						count++;
 						try {
-							n = readfromFile(String.format("%d.txt", count)); // 从文件中读取题目
+							n = readFromFile(String.format("%d.txt", count)); /**从文件中读取题目*/
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						}
@@ -141,9 +159,8 @@ public class Sudoku extends JFrame {
 					public void actionPerformed(ActionEvent e) {
 						String[][] n = new String[9][9];
 						try {
-							n = readfromFile("save.txt");
+							n = readFromFile("save.txt");
 						} catch (FileNotFoundException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 						for (int z = 0; z < 3; z++) {
@@ -202,7 +219,7 @@ public class Sudoku extends JFrame {
 			} else {
 
 				pnlGame[i] = new JPanel();
-				JButton btn3 = new JButton("提示"); // Create JButton object
+				JButton btn3 = new JButton("提示"); /**Create JButton object*/
 				JTextField time = new JTextField();
 				time.setText(String.valueOf(t));
 				time.setEditable(false);
@@ -223,11 +240,11 @@ public class Sudoku extends JFrame {
 							time.setEditable(false);
 							String[][] n = new String[9][9];
 							try {
-								n = readfromFile(String.format("%d.txt", count + 30)); // 从文件中读取答案
+								n = readFromFile(String.format("%d.txt", count + 30)); /**从文件中读取答案*/
 							} catch (FileNotFoundException e1) {
 								e1.printStackTrace();
 							}
-							// 获得需要提示的txt位置
+							/**获得需要提示的txt位置*/
 							lastFocusTextFiled.setText("");// TODO
 							for (int z = 0; z < 9; z++) {
 								for (int x = 0; x < 3; x++) {
@@ -241,13 +258,13 @@ public class Sudoku extends JFrame {
 							}
 
 						} else {
-							JFrame zero = new JFrame("错误"); // Create Frame
+							JFrame zero = new JFrame("错误"); /**Create Frame*/
 							zero.setBounds(300, 200, 600, 500);
 							zero.setVisible(true);
 							zero.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-							JLabel jl2 = new JLabel("你的提示次数已用完"); // create a label
-							Container c = zero.getContentPane(); // get the window
-							c.add(jl2); // add label to window
+							JLabel jl2 = new JLabel("你的提示次数已用完"); /**create a label*/
+							Container c = zero.getContentPane(); /**get the window*/
+							c.add(jl2); /**add label to window*/
 							c.setVisible(true);
 						}
 					}
@@ -258,7 +275,7 @@ public class Sudoku extends JFrame {
 
 		}
 
-		// 填数独
+		/**填数独*/
 		int tt = 0;
 		for (int z = 0; z < 9; z++) {
 			if ((z + 1 + tt) % 4 == 0)
@@ -268,22 +285,73 @@ public class Sudoku extends JFrame {
 					txtGame[z][x][y] = new JTextField();
 					txtGame[z][x][y].addFocusListener(textFocusListener);
 					txtGame[z][x][y].setBorder(BorderFactory.createEtchedBorder());
-					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));// Set size and font
-					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);// set position
+					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));/**Set size and font*/
+					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);/**set position*/
 					pnlGame[z + tt].add(txtGame[z][x][y]);
 
 				}
 			}
 		}
 
+		// 错误提示// TODO
+//		change = new int[9][9];// 转换
+//		for (int z = 0; z < 9; z++) {
+//			for (int x = 0; x < 3; x++) {
+//				for (int y = 0; y < 3; y++) {
+//					if (!txtGame[z][x][y].getText().isEmpty())
+//						change[Cell.getX(z, x)][Cell.getY(z, y)] = Integer.parseInt(txtGame[z][x][y].getText());
+//					else
+//						change[Cell.getX(z, x)][Cell.getY(z, y)] = 0;
+//				}
+//			}
+//		}
+//		Color color = Color.WHITE;
+//		for (int z = 0; z < 9; z++) {
+//			for (int x = 0; x < 3; x++) {
+//				for (int y = 0; y < 3; y++) {
+//					JTextField txt = txtGame[z][x][y];
+//					txt.addFocusListener(textFocusListener);
+//					if (txt == lastFocusTextFiled) {
+//						row = Cell.getX(z, x);
+//						col = Cell.getY(z, y);
+//						if (!check(row, col)) {
+//							color = Color.red;
+//							txt.setBackground(color);
+//						}
+//						else
+//							txt.setBackground(color);
+//					}
+//
+//				}
+//			}
+//		}
 		this.setVisible(true);
 
 	}
 
-	public static void check() {// TODO// 判断对错
+//	public boolean check(int row, int col) {// 判断对错
+//		boolean b = true;
+//		for (int c = 0; c < 9; c++) {
+//			if (change[row][col] == change[row][c] && col != c) {
+//				b = false;
+//				break;
+//			}
+//		}
+//		for (int r = 0; r < 9; r++) {
+//			if (change[row][col] == change[r][col] && row != r) {
+//				b = false;
+//				break;
+//			}
+//		}
+//
+//		return b;
+//
+//	}
+	
+	public static void check() { /**判断对错*/// TODO
 		int countFalse = 0;
 
-		int[][] change = new int[9][9];// 转换
+		int[][] change = new int[9][9];/**将数独内容转换成9*9int数组change */
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
 				for (int y = 0; y < 3; y++) {
@@ -300,9 +368,25 @@ public class Sudoku extends JFrame {
 				for (int y = 0; y < 3; y++) {
 					JTextField txt = txtGame[z][x][y];
 
-					txt.getDocument().addDocumentListener(new Swing_OnValueChanged());
+					 
+					if (txt.isEditable()) {
+					txt.addFocusListener(new FocusListener(){
+						   
+			   			//获得焦点
+			   			@Override
+			   			public void focusGained(FocusEvent e) {
+			   				focus.setText(txt.getText());
+			   			}
+			   
+			   			//失去焦点
+			   			@Override
+			   			public void focusLost(FocusEvent e) {
+			   				
+			   			}
+			   			
+			   		});
 
-					if (txtGame[z][x][y] == testtxt) {
+					if (txtGame[z][x][y].getText().equals(focus.getText())) {
 						row = Cell.getX(z, x);
 						col = Cell.getY(z, y);
 						for (int c = 0; c < 9; c++) {
@@ -326,8 +410,8 @@ public class Sudoku extends JFrame {
 		Color color = Color.WHITE;
 		if (countFalse > 0)
 			color = Color.red;
-		testtxt.setBackground(color);
-
+		focus.setBackground(color);
+		}
 	}
 
 	public static void main(String[] args) {
@@ -338,18 +422,18 @@ public class Sudoku extends JFrame {
 			mm++;
 		}
 		if (!end()) {
-			JFrame end = new JFrame("结束"); // Create Frame
+			JFrame end = new JFrame("结束"); /**Create Frame*/
 			end.setBounds(300, 200, 600, 500);
 			end.setVisible(true);
 			end.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			JLabel jl = new JLabel("You Win"); // create a label
-			Container c = end.getContentPane(); // get the window
-			c.add(jl); // add label to window
+			JLabel jl = new JLabel("You Win"); /**create a label*/
+			Container c = end.getContentPane(); /**get the window*/
+			c.add(jl); /**add label to window*/
 			c.setVisible(true);
 		}
 	}
 
-	private static boolean end() {
+	private static boolean end() {/**判断游戏是否结束*/
 		int empty = 0;
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
@@ -363,7 +447,7 @@ public class Sudoku extends JFrame {
 		return empty != 0;
 	}
 
-	public static String[][] readfromFile(String filename) throws FileNotFoundException {
+	public static String[][] readFromFile(String filename) throws FileNotFoundException {/**读取文件*/
 		String[][] s = new String[9][9];
 		File inputFile = new File(filename);
 		Scanner input = new Scanner(inputFile);
@@ -376,7 +460,7 @@ public class Sudoku extends JFrame {
 
 	}
 
-	private void addJRadioButton(final String text, int i) {
+	private void addJRadioButton(final String text, int i) {/**添加难度选择按钮*/
 		JRadioButton radioButton = new JRadioButton(text);
 		group.add(radioButton);
 		pnlGame[i].add(radioButton);
@@ -400,29 +484,8 @@ public class Sudoku extends JFrame {
 
 	}
 
-	private static void Key(JTextField txt) {
-		txt.addKeyListener(new KeyAdapter() {
 
-			@Override
-			public void keyTyped(KeyEvent e) {
-
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-				int code = e.getKeyCode();
-				if (code >= KeyEvent.VK_0 && code <= KeyEvent.VK_9)
-					key = 1;
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-
-			}
-		});
-	}
-
-	public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {
+	public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {/**存档*/
 		String[][] s = new String[9][9];
 
 		for (int z = 0; z < 9; z++) {
