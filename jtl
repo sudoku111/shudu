@@ -10,6 +10,12 @@ public class Sudoku extends JFrame {
     private JPanel[] pnlGame;
     private static JTextField[][][] txtGame;
     private JTextField lastFocusTextFiled;
+    private JLabel time;
+    private CountingThread thread = new CountingThread();
+    private long programStart;
+    private static boolean goOn=true;
+    private static long elapsed;
+    private static int count2=0;
     private FocusListener textFocusListener = new FocusListener() {
         @Override
         public void focusGained(FocusEvent e) {
@@ -53,6 +59,12 @@ public class Sudoku extends JFrame {
 
             		@Override
             		public void actionPerformed(ActionEvent e) {
+            			programStart = System.currentTimeMillis();
+            			goOn=true;
+            			if(count2==0) {
+            				thread.start();
+            				count2++;
+            			}
             			String[][] n = new String[9][9];
             			count++;
             			try {
@@ -116,6 +128,8 @@ public class Sudoku extends JFrame {
             	btn3.addActionListener(new ActionListener() {
             		@Override
             		public void actionPerformed(ActionEvent e) {
+                        programStart = System.currentTimeMillis();
+            			
             			String[][] n = new String[9][9];
             			try {
             				n=readfromFile("save.txt");
@@ -174,6 +188,9 @@ public class Sudoku extends JFrame {
                 addJRadioButton("易", i);
                 addJRadioButton("中", i);
                 addJRadioButton("难", i);
+                time=new JLabel("00:00:00 000"); 
+                pnlGame[i].add(time);
+                
                 this.add(pnlGame[i]);
             } else {
 
@@ -267,17 +284,19 @@ public class Sudoku extends JFrame {
     }
 
     public static void main(String[] args) {
-        new Sudoku();
-
+    	
+    	 new Sudoku();
+    	
         int mm = 0;
         while (end()) {
             mm++;
         }
         if (!end()) {
+        	goOn=false;
         	JDialog dialog = new JDialog(); // Create Frame
             dialog.setBounds(300, 200, 300, 200);
             dialog.setVisible(true);
-            JLabel jl2 = new JLabel("游戏结束！点击确定继续"); // create a label
+            JLabel jl2 = new JLabel("游戏结束！用时  "+format(elapsed)+"  点击确定继续"); // create a label
             final JButton but=new JButton("确定");
             dialog.setModal(true);
             dialog.setLayout(new FlowLayout());
@@ -288,7 +307,7 @@ public class Sudoku extends JFrame {
                 public void actionPerformed(ActionEvent e) {
                 	dialog.dispose();
                 }});
-        
+           
         }
     }
 
@@ -316,12 +335,9 @@ public class Sudoku extends JFrame {
             }
         }
         return s;
-
+        
     }
 
-
-   
-	
 
 
 	private void addJRadioButton(final String text, int i) {
@@ -349,30 +365,7 @@ public class Sudoku extends JFrame {
 
 	}
 
-	private static void Key(JTextField txt) {
-		txt.addKeyListener(new KeyAdapter() {
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-				int code = e.getKeyCode();
-				if (code >= KeyEvent.VK_0 && code <= KeyEvent.VK_9)
-					key = 1;
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-		});
-	}
-
-public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {
+	public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {
 	String[][] s = new String[9][9];
 	
 	for (int z = 0; z < 9; z++) {
@@ -394,4 +387,42 @@ public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundExceptio
 		 output.println();}
     output.close();
 }
+	
+	
+	private class CountingThread extends Thread {
+		public boolean goOn = true;
+	    private CountingThread() {
+	      setDaemon(true);
+	    }
+	    @Override
+	    public void run() {
+	      while (true) {
+	        if (goOn) {
+	          elapsed = System.currentTimeMillis() - programStart;
+	          time.setText(format(elapsed));
+	        }
+	        try {
+	          sleep(1); // 1毫秒更新一次显示
+	        } catch (InterruptedException e) {
+	          e.printStackTrace();
+	          System.exit(1);
+	        }
+	      }
+        
+	    }
+	    // 将毫秒数变为时秒分
+	    
+	  }
+	public static String format(long elapsed) {
+	      int hour, minute, second, milli;
+	      milli = (int) (elapsed % 1000);
+	      elapsed = elapsed / 1000;
+	      second = (int) (elapsed % 60);
+	      elapsed = elapsed / 60;
+	      minute = (int) (elapsed % 60);
+	      elapsed = elapsed / 60;
+	      hour = (int) (elapsed % 60);
+	      return String.format("%02d:%02d:%02d %03d", hour, minute, second, milli);
+	    }
+	
 }
