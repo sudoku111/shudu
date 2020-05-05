@@ -24,18 +24,16 @@ public class Sudoku extends JFrame {
 	private static JTextField focus;
 	private static int row, col;
 	private static int[][] change;
+	private JLabel time;
+	private CountingThread thread = new CountingThread();
+	private long programStart;
+	private static boolean goOn = true;
+	private static long elapsed;
+	private static int count2 = 0;
 
-	private FocusListener textFocusListener = new FocusListener() {
-		@Override
-		public void focusGained(FocusEvent e) {
-			lastFocusTextFiled = (JTextField) e.getComponent();
-		}
+	private FocusListener textFocusListener=new FocusListener(){@Override public void focusGained(FocusEvent e){lastFocusTextFiled=(JTextField)e.getComponent();}
 
-		@Override
-		public void focusLost(FocusEvent e) {
-			lastFocusTextFiled = (JTextField) e.getComponent();
-		}
-	};
+	@Override public void focusLost(FocusEvent e){lastFocusTextFiled=(JTextField)e.getComponent();}};
 
 //	private static DocumentListener testDocumentListener = new DocumentListener() {
 //		@Override
@@ -93,6 +91,12 @@ public class Sudoku extends JFrame {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
+						programStart = System.currentTimeMillis();
+            			goOn=true;
+            			if(count2==0) {
+            				thread.start();
+            				count2++;
+            			}
 						String[][] n = new String[9][9];
 						count++;
 						try {
@@ -144,6 +148,8 @@ public class Sudoku extends JFrame {
 					}
 				});
 				btn2.addActionListener(new ActionListener() {
+					
+					
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						try {
@@ -157,6 +163,7 @@ public class Sudoku extends JFrame {
 				btn3.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
+						programStart = System.currentTimeMillis();
 						String[][] n = new String[9][9];
 						try {
 							n = readFromFile("save.txt");
@@ -215,6 +222,9 @@ public class Sudoku extends JFrame {
 				addJRadioButton("易", i);
 				addJRadioButton("中", i);
 				addJRadioButton("难", i);
+				 time=new JLabel("00:00:00 000"); 
+	                pnlGame[i].add(time);
+	                
 				this.add(pnlGame[i]);
 			} else {
 
@@ -226,74 +236,71 @@ public class Sudoku extends JFrame {
 				pnlGame[i].add(time);
 				btn3.addActionListener(new ActionListener() {
 
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						if (lastFocusTextFiled == null) {
-							System.err.println("Please select a text field");
-							return;
-						}
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (lastFocusTextFiled == null) {
+			System.err.println("Please select a text field");
+			return;
+		}
 
-						if (t > 0) {
-							t--;
-							time.setEditable(true);
-							time.setText(String.valueOf(t));
-							time.setEditable(false);
-							String[][] n = new String[9][9];
-							try {
-								n = readFromFile(String.format("%d.txt", count + 30)); /**从文件中读取答案*/
-							} catch (FileNotFoundException e1) {
-								e1.printStackTrace();
-							}
-							/**获得需要提示的txt位置*/
-							lastFocusTextFiled.setText("");// TODO
-							for (int z = 0; z < 9; z++) {
-								for (int x = 0; x < 3; x++) {
-									for (int y = 0; y < 3; y++) {
-										if (txtGame[z][x][y] == lastFocusTextFiled) {
-											txtGame[z][x][y].setText(n[Cell.getX(z, x)][Cell.getY(z, y)]);
-											txtGame[z][x][y].setEditable(false);
-										}
-									}
-								}
-							}
-
-						} else {
-							JFrame zero = new JFrame("错误"); /**Create Frame*/
-							zero.setBounds(300, 200, 600, 500);
-							zero.setVisible(true);
-							zero.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-							JLabel jl2 = new JLabel("你的提示次数已用完"); /**create a label*/
-							Container c = zero.getContentPane(); /**get the window*/
-							c.add(jl2); /**add label to window*/
-							c.setVisible(true);
+		if (t > 0) {
+			t--;
+			time.setEditable(true);
+			time.setText(String.valueOf(t));
+			time.setEditable(false);
+			String[][] n = new String[9][9];
+			try {
+				n = readFromFile(String.format("%d.txt", count + 30)); /** 从文件中读取答案 */
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
+			/** 获得需要提示的txt位置 */
+			lastFocusTextFiled.setText("");// TODO
+			for (int z = 0; z < 9; z++) {
+				for (int x = 0; x < 3; x++) {
+					for (int y = 0; y < 3; y++) {
+						if (txtGame[z][x][y] == lastFocusTextFiled) {
+							txtGame[z][x][y].setText(n[Cell.getX(z, x)][Cell.getY(z, y)]);
+							txtGame[z][x][y].setEditable(false);
 						}
 					}
-				});
-				pnlGame[i].add(btn3);
-				this.add(pnlGame[i]);
-			}
-
-		}
-
-		/**填数独*/
-		int tt = 0;
-		for (int z = 0; z < 9; z++) {
-			if ((z + 1 + tt) % 4 == 0)
-				tt++;
-			for (int x = 0; x < 3; x++) {
-				for (int y = 0; y < 3; y++) {
-					txtGame[z][x][y] = new JTextField();
-					txtGame[z][x][y].addFocusListener(textFocusListener);
-					txtGame[z][x][y].setBorder(BorderFactory.createEtchedBorder());
-					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));/**Set size and font*/
-					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);/**set position*/
-					pnlGame[z + tt].add(txtGame[z][x][y]);
-
 				}
 			}
-		}
 
-		// 错误提示// TODO
+		} else {
+			JFrame zero = new JFrame("错误"); /** Create Frame */
+			zero.setBounds(300, 200, 600, 500);
+			zero.setVisible(true);
+			zero.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			JLabel jl2 = new JLabel("你的提示次数已用完"); /** create a label */
+			Container c = zero.getContentPane(); /** get the window */
+			c.add(jl2); /** add label to window */
+			c.setVisible(true);
+		}
+	}});pnlGame[i].add(btn3);this.add(pnlGame[i]);}
+
+	}
+
+	/** 填数独 */
+	int tt = 0;for(
+	int z = 0;z<9;z++)
+	{
+		if ((z + 1 + tt) % 4 == 0)
+			tt++;
+		for (int x = 0; x < 3; x++) {
+			for (int y = 0; y < 3; y++) {
+				txtGame[z][x][y] = new JTextField();
+				txtGame[z][x][y].addFocusListener(textFocusListener);
+				txtGame[z][x][y].setBorder(BorderFactory.createEtchedBorder());
+				txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));/** Set size and font */
+				txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);/** set position */
+				pnlGame[z + tt].add(txtGame[z][x][y]);
+
+			}
+		}
+	}
+
+	// 错误提示// TODO
 //		change = new int[9][9];// 转换
 //		for (int z = 0; z < 9; z++) {
 //			for (int x = 0; x < 3; x++) {
@@ -325,7 +332,7 @@ public class Sudoku extends JFrame {
 //				}
 //			}
 //		}
-		this.setVisible(true);
+	this.setVisible(true);
 
 	}
 
@@ -347,11 +354,12 @@ public class Sudoku extends JFrame {
 //		return b;
 //
 //	}
-	
-	public static void check() { /**判断对错*/// TODO
+
+	public static void check() { /** 判断对错 */// TODO
 		int countFalse = 0;
 
-		int[][] change = new int[9][9];/**将数独内容转换成9*9int数组change */
+		int[][] change = new int[9][9];
+		/** 将数独内容转换成9*9int数组change */
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
 				for (int y = 0; y < 3; y++) {
@@ -368,49 +376,48 @@ public class Sudoku extends JFrame {
 				for (int y = 0; y < 3; y++) {
 					JTextField txt = txtGame[z][x][y];
 
-					 
 					if (txt.isEditable()) {
-					txt.addFocusListener(new FocusListener(){
-						   
-			   			//获得焦点
-			   			@Override
-			   			public void focusGained(FocusEvent e) {
-			   				focus.setText(txt.getText());
-			   			}
-			   
-			   			//失去焦点
-			   			@Override
-			   			public void focusLost(FocusEvent e) {
-			   				
-			   			}
-			   			
-			   		});
+						txt.addFocusListener(new FocusListener() {
 
-					if (txtGame[z][x][y].getText().equals(focus.getText())) {
-						row = Cell.getX(z, x);
-						col = Cell.getY(z, y);
-						for (int c = 0; c < 9; c++) {
-							if (change[row][col] == change[row][c]) {
-								countFalse++;
-								break;
+							// 获得焦点
+							@Override
+							public void focusGained(FocusEvent e) {
+								focus.setText(txt.getText());
 							}
-						}
-						for (int r = 0; r < 9; r++) {
-							if (change[row][col] == change[r][col]) {
-								countFalse++;
-								break;
-							}
-						}
 
+							// 失去焦点
+							@Override
+							public void focusLost(FocusEvent e) {
+
+							}
+
+						});
+
+						if (txtGame[z][x][y].getText().equals(focus.getText())) {
+							row = Cell.getX(z, x);
+							col = Cell.getY(z, y);
+							for (int c = 0; c < 9; c++) {
+								if (change[row][col] == change[row][c]) {
+									countFalse++;
+									break;
+								}
+							}
+							for (int r = 0; r < 9; r++) {
+								if (change[row][col] == change[r][col]) {
+									countFalse++;
+									break;
+								}
+							}
+
+						}
 					}
 				}
 			}
-		}
 
-		Color color = Color.WHITE;
-		if (countFalse > 0)
-			color = Color.red;
-		focus.setBackground(color);
+			Color color = Color.WHITE;
+			if (countFalse > 0)
+				color = Color.red;
+			focus.setBackground(color);
 		}
 	}
 
@@ -422,18 +429,27 @@ public class Sudoku extends JFrame {
 			mm++;
 		}
 		if (!end()) {
-			JFrame end = new JFrame("结束"); /**Create Frame*/
-			end.setBounds(300, 200, 600, 500);
-			end.setVisible(true);
-			end.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			JLabel jl = new JLabel("You Win"); /**create a label*/
-			Container c = end.getContentPane(); /**get the window*/
-			c.add(jl); /**add label to window*/
-			c.setVisible(true);
+			goOn = false;
+			JDialog dialog = new JDialog(); // Create Frame
+			dialog.setBounds(300, 200, 300, 200);
+			dialog.setVisible(true);
+			JLabel jl2 = new JLabel("游戏结束！用时  " + format(elapsed) + "  点击确定继续"); // create a label
+			final JButton but = new JButton("确定");
+			dialog.setModal(true);
+			dialog.setLayout(new FlowLayout());
+			dialog.add(jl2);
+			dialog.add(but);
+			but.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					dialog.dispose();
+				}
+			});
+
 		}
 	}
 
-	private static boolean end() {/**判断游戏是否结束*/
+	private static boolean end() {/** 判断游戏是否结束 */
 		int empty = 0;
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
@@ -447,7 +463,7 @@ public class Sudoku extends JFrame {
 		return empty != 0;
 	}
 
-	public static String[][] readFromFile(String filename) throws FileNotFoundException {/**读取文件*/
+	public static String[][] readFromFile(String filename) throws FileNotFoundException {/** 读取文件 */
 		String[][] s = new String[9][9];
 		File inputFile = new File(filename);
 		Scanner input = new Scanner(inputFile);
@@ -460,7 +476,7 @@ public class Sudoku extends JFrame {
 
 	}
 
-	private void addJRadioButton(final String text, int i) {/**添加难度选择按钮*/
+	private void addJRadioButton(final String text, int i) {/** 添加难度选择按钮 */
 		JRadioButton radioButton = new JRadioButton(text);
 		group.add(radioButton);
 		pnlGame[i].add(radioButton);
@@ -484,8 +500,7 @@ public class Sudoku extends JFrame {
 
 	}
 
-
-	public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {/**存档*/
+	public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {/** 存档 */
 		String[][] s = new String[9][9];
 
 		for (int z = 0; z < 9; z++) {
@@ -507,5 +522,44 @@ public class Sudoku extends JFrame {
 			output.println();
 		}
 		output.close();
+	}
+
+	private class CountingThread extends Thread {
+		public boolean goOn = true;
+
+		private CountingThread() {
+			setDaemon(true);
+		}
+
+		@Override
+		public void run() {
+			while (true) {
+				if (goOn) {
+					elapsed = System.currentTimeMillis() - programStart;
+					time.setText(format(elapsed));
+				}
+				try {
+					sleep(1); // 1毫秒更新一次显示
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
+			}
+
+		}
+		// 将毫秒数变为时秒分
+
+	}
+
+	public static String format(long elapsed) {
+		int hour, minute, second, milli;
+		milli = (int) (elapsed % 1000);
+		elapsed = elapsed / 1000;
+		second = (int) (elapsed % 60);
+		elapsed = elapsed / 60;
+		minute = (int) (elapsed % 60);
+		elapsed = elapsed / 60;
+		hour = (int) (elapsed % 60);
+		return String.format("%02d:%02d:%02d %03d", hour, minute, second, milli);
 	}
 }
