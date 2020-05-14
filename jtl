@@ -3,61 +3,53 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-
+import java.awt.Color;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 /**
  * 
  * @author hjq&jtl
  *
  */
-public class Sudoku extends JFrame {
+public class Sudoku extends JFrame implements DocumentListener {
 	private JPanel[] pnlGame;
 	private static JTextField[][][] txtGame;
+	private static int[][][] editableLocation = new int[9][3][3];
 	private JTextField lastFocusTextFiled;
-	private static JTextField lastDocumentListener;
-	private static JTextField focus;
-	private static int row, col;
-	private static int[][] change;
 	private JLabel time;
 	private CountingThread thread = new CountingThread();
 	private long programStart;
 	private static boolean goOn = true;
 	private static long elapsed;
 	private static int count2 = 0;
+	private static long timeRecord;
+	private Map<JTextField, JTextField> warnFiledMap = new HashMap<JTextField, JTextField>();
+	private Document doc;
+	private int isNumber = 1;
+	/** 输入的是否为数字 */
+	private int removedNumberByInsert = 0;
+	/** remove是不是在已有值的前提下insert一个新值导致的 */
 
-	private FocusListener textFocusListener=new FocusListener(){@Override public void focusGained(FocusEvent e){lastFocusTextFiled=(JTextField)e.getComponent();}
+	private FocusListener textFocusListener = new FocusListener() {
+		@Override
+		public void focusGained(FocusEvent e) {
+			lastFocusTextFiled = (JTextField) e.getComponent();
+		}
 
-	@Override public void focusLost(FocusEvent e){lastFocusTextFiled=(JTextField)e.getComponent();}};
-
-//	private static DocumentListener testDocumentListener = new DocumentListener() {
-//		@Override
-//		public void removeUpdate(DocumentEvent e) {
-
-//		}
-//
-//		@Override
-	// public void insertUpdate(DocumentEvent e) {
-
-	// try {
-	// lastDocumentListener.setText(e.getDocument().getText(e.getDocument().getStartPosition().getOffset(),
-	// e.getDocument().getLength()));
-	// } catch (BadLocationException ex) {
-	// ex.printStackTrace();
-	// }
-	// }
-
-	// @Override
-	// public void changedUpdate(DocumentEvent e) {
-//
-	// }
-//
-//	};
+		@Override
+		public void focusLost(FocusEvent e) {
+			lastFocusTextFiled = (JTextField) e.getComponent();
+		}
+	};
 
 	private ButtonGroup group;
 	private int count;
@@ -84,23 +76,23 @@ public class Sudoku extends JFrame {
 				pnlGame[i].setLayout(new GridLayout(3, 3));
 				this.add(pnlGame[i]);
 			} else if (i == 3) {
-				JButton btn1 = new JButton("新游戏"); /**新游戏按钮*/
-				JButton btn2 = new JButton("存档"); /**存档按钮*/
-				JButton btn3 = new JButton("读档"); /**读档按钮*/
+				JButton btn1 = new JButton("新游戏"); /** 新游戏按钮 */
+				JButton btn2 = new JButton("存档"); /** 存档按钮 */
+				JButton btn3 = new JButton("读档"); /** 读档按钮 */
 				btn1.addActionListener(new ActionListener() {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						programStart = System.currentTimeMillis();
-            			goOn=true;
-            			if(count2==0) {
-            				thread.start();
-            				count2++;
-            			}
+						goOn = true;
+						if (count2 == 0) {
+							thread.start();
+							count2++;
+						}
 						String[][] n = new String[9][9];
 						count++;
 						try {
-							n = readFromFile(String.format("%d.txt", count)); /**从文件中读取题目*/
+							n = readFromFile(String.format("%d.txt", count)); /** 从文件中读取题目 */
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						}
@@ -112,6 +104,7 @@ public class Sudoku extends JFrame {
 									if (n[x][y + 3 * z].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
+										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x][y + 3 * z]);
 										txtGame[z][x][y].setEditable(false);
@@ -125,6 +118,7 @@ public class Sudoku extends JFrame {
 									if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
+										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
 										txtGame[z][x][y].setEditable(false);
@@ -138,6 +132,7 @@ public class Sudoku extends JFrame {
 									if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
+										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
 										txtGame[z][x][y].setEditable(false);
@@ -148,8 +143,7 @@ public class Sudoku extends JFrame {
 					}
 				});
 				btn2.addActionListener(new ActionListener() {
-					
-					
+
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						try {
@@ -176,6 +170,7 @@ public class Sudoku extends JFrame {
 									if (n[x][y + 3 * z].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
+										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x][y + 3 * z]);
 										txtGame[z][x][y].setEditable(false);
@@ -189,6 +184,7 @@ public class Sudoku extends JFrame {
 									if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
+										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
 										txtGame[z][x][y].setEditable(false);
@@ -202,6 +198,7 @@ public class Sudoku extends JFrame {
 									if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
+										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
 										txtGame[z][x][y].setEditable(false);
@@ -222,230 +219,352 @@ public class Sudoku extends JFrame {
 				addJRadioButton("易", i);
 				addJRadioButton("中", i);
 				addJRadioButton("难", i);
-				 time=new JLabel("00:00:00 000"); 
-	                pnlGame[i].add(time);
-	                
+				time = new JLabel("00:00:00 000");
+				pnlGame[i].add(time);
+
 				this.add(pnlGame[i]);
 			} else {
 
 				pnlGame[i] = new JPanel();
-				JButton btn3 = new JButton("提示"); /**Create JButton object*/
+				JButton btn3 = new JButton("提示"); /** Create JButton object */
 				JTextField time = new JTextField();
 				time.setText(String.valueOf(t));
 				time.setEditable(false);
 				pnlGame[i].add(time);
 				btn3.addActionListener(new ActionListener() {
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (lastFocusTextFiled == null) {
-			System.err.println("Please select a text field");
-			return;
-		}
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						if (lastFocusTextFiled == null) {
+							System.err.println("Please select a text field");
+							return;
+						}
 
-		if (t > 0) {
-			t--;
-			time.setEditable(true);
-			time.setText(String.valueOf(t));
-			time.setEditable(false);
-			String[][] n = new String[9][9];
-			try {
-				n = readFromFile(String.format("%d.txt", count + 30)); /** 从文件中读取答案 */
-			} catch (FileNotFoundException e1) {
-				e1.printStackTrace();
-			}
-			/** 获得需要提示的txt位置 */
-			lastFocusTextFiled.setText("");// TODO
-			for (int z = 0; z < 9; z++) {
-				for (int x = 0; x < 3; x++) {
-					for (int y = 0; y < 3; y++) {
-						if (txtGame[z][x][y] == lastFocusTextFiled) {
-							txtGame[z][x][y].setText(n[Cell.getX(z, x)][Cell.getY(z, y)]);
-							txtGame[z][x][y].setEditable(false);
+						if (t > 0) {
+							t--;
+							time.setEditable(true);
+							time.setText(String.valueOf(t));
+							time.setEditable(false);
+							String[][] n = new String[9][9];
+							try {
+								n = readFromFile(String.format("%d.txt", count + 30)); /** 从文件中读取答案 */
+							} catch (FileNotFoundException e1) {
+								e1.printStackTrace();
+							}
+							/** 获得需要提示的txt位置 */
+							lastFocusTextFiled.setText("");// TODO
+							for (int z = 0; z < 9; z++) {
+								for (int x = 0; x < 3; x++) {
+									for (int y = 0; y < 3; y++) {
+										if (txtGame[z][x][y] == lastFocusTextFiled) {
+											txtGame[z][x][y].setText(n[Cell.getX(z, x)][Cell.getY(z, y)]);
+											txtGame[z][x][y].setEditable(false);
+										}
+									}
+								}
+							}
+
+						} else {
+							JFrame zero = new JFrame("错误"); /** Create Frame */
+							zero.setBounds(300, 200, 600, 500);
+							zero.setVisible(true);
+							zero.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+							JLabel jl2 = new JLabel("你的提示次数已用完"); /** create a label */
+							Container c = zero.getContentPane(); /** get the window */
+							c.add(jl2); /** add label to window */
+							c.setVisible(true);
 						}
 					}
-				}
+				});
+				pnlGame[i].add(btn3);
+				this.add(pnlGame[i]);
 			}
 
-		} else {
-			JFrame zero = new JFrame("错误"); /** Create Frame */
-			zero.setBounds(300, 200, 600, 500);
-			zero.setVisible(true);
-			zero.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			JLabel jl2 = new JLabel("你的提示次数已用完"); /** create a label */
-			Container c = zero.getContentPane(); /** get the window */
-			c.add(jl2); /** add label to window */
-			c.setVisible(true);
 		}
-	}});pnlGame[i].add(btn3);this.add(pnlGame[i]);}
+
+		/** 填数独 */
+		int tt = 0;
+		for (int z = 0; z < 9; z++) {
+			if ((z + 1 + tt) % 4 == 0)
+				tt++;
+			for (int x = 0; x < 3; x++) {
+				for (int y = 0; y < 3; y++) {
+					txtGame[z][x][y] = new JTextField();
+					txtGame[z][x][y].addFocusListener(textFocusListener);
+					txtGame[z][x][y].setBorder(BorderFactory.createEtchedBorder());
+					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));/** Set size and font */
+					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);/** set position */
+					pnlGame[z + tt].add(txtGame[z][x][y]);
+					if (editableLocation[z][x][y] == 1)
+					txtGame[z][x][y].getDocument().addDocumentListener(this);
+				}
+			}
+		}
+		this.setVisible(true);
+		
+//		for (int z = 0; z < 9; z++) {
+//			for (int x = 0; x < 3; x++) {
+//				for (int y = 0; y < 3; y++) {
+//					if (edibleLocation[z][x][y] == 1)
+//						txtGame[z][x][y].getDocument().addDocumentListener(this);
+//				}
+//			}
+//		}
+
+		
 
 	}
 
-	/** 填数独 */
-	int tt = 0;for(
-	int z = 0;z<9;z++)
-	{
-		if ((z + 1 + tt) % 4 == 0)
-			tt++;
+	private void check(int z0, int x0, int y0) { /** 判断对错 */// TODO
+		int[] xAxis = new int[2];/** 以z小九宫格为标准，x轴方向遍历 */
+		int[] yAxis = new int[2];/** 以z小九宫格为标准，y轴方向遍历 */
+		String value = txtGame[z0][x0][y0].getText();
+		value = value.substring(value.length() - 1, value.length());
+		if (z0 == 0 || z0 == 3 || z0 == 6) {/** 如果是0, 3 ,6 小九宫格，检查右面2个小九宫格 */
+			xAxis[0] = z0 + 1;
+			xAxis[1] = z0 + 2;
+		} else if (z0 == 1 || z0 == 4 || z0 == 7) {/** 如果是1, 4, 7 小九宫格，检查左右两边的小九宫格 */
+			xAxis[0] = z0 - 1;
+			xAxis[1] = z0 + 1;
+		} else if (z0 == 2 || z0 == 5 || z0 == 8) {/** 如果是2, 5, 8 小九宫格，检查左面2个小九宫格 */
+			xAxis[0] = z0 - 2;
+			xAxis[1] = z0 - 1;
+		}
+
+		if (z0 >= 6) {/** 6,7,8小九宫格 检查上面2个小九宫格 */
+			yAxis[0] = z0 - 6;
+			yAxis[1] = z0 - 3;
+		} else if (z0 >= 3 && z0 < 6) {/** 3,4,5小九宫格 检查上下两个小九宫格 */
+			yAxis[0] = z0 - 3;
+			yAxis[1] = z0 + 3;
+		} else if (z0 < 3) {/** 0,1,2小九宫格 检查下面2个小九宫格 */
+			yAxis[0] = z0 + 3;
+			yAxis[1] = z0 + 6;
+		}
+		int z;
+		/** 检查同一列中已存在的数据 */
+		for (int i = 0; i < 2; i++) {
+			z = yAxis[i];
+			for (int x = 0; x < 3; x++) {
+				if (txtGame[z][x][y0].getText().equals(value)) {
+					txtGame[z][x][y0].setForeground(Color.red);
+					txtGame[z0][x0][y0].setForeground(Color.red);
+					/** 将冲突的两个文本框中的数字交替放入map中 */
+					warnFiledMap.put(txtGame[z][x][y0], txtGame[z0][x0][y0]);
+					warnFiledMap.put(txtGame[z0][x0][y0], txtGame[z][x][y0]);
+					return;
+				}
+			}
+		}
+		/** 检查同一行中已存在的数据 */
+		for (int i = 0; i < 2; i++) {
+			z = xAxis[i];
+			for (int y = 0; y < 3; y++) {
+				if (txtGame[z][x0][y].getText().equals(value)) {
+					txtGame[z][x0][y].setForeground(Color.red);
+					txtGame[z0][x0][y0].setForeground(Color.red);
+					/** 将冲突的两个文本框中的数字交替放入map中 */
+					warnFiledMap.put(txtGame[z][x0][y], txtGame[z0][x0][y0]);
+					warnFiledMap.put(txtGame[z0][x0][y0], txtGame[z][x0][y]);
+					return;
+				}
+			}
+		}
+		/** 检查小九宫格内部数字 */
 		for (int x = 0; x < 3; x++) {
 			for (int y = 0; y < 3; y++) {
-				txtGame[z][x][y] = new JTextField();
-				txtGame[z][x][y].addFocusListener(textFocusListener);
-				txtGame[z][x][y].setBorder(BorderFactory.createEtchedBorder());
-				txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));/** Set size and font */
-				txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);/** set position */
-				pnlGame[z + tt].add(txtGame[z][x][y]);
-
-			}
-		}
-	}
-
-	// 错误提示// TODO
-//		change = new int[9][9];// 转换
-//		for (int z = 0; z < 9; z++) {
-//			for (int x = 0; x < 3; x++) {
-//				for (int y = 0; y < 3; y++) {
-//					if (!txtGame[z][x][y].getText().isEmpty())
-//						change[Cell.getX(z, x)][Cell.getY(z, y)] = Integer.parseInt(txtGame[z][x][y].getText());
-//					else
-//						change[Cell.getX(z, x)][Cell.getY(z, y)] = 0;
-//				}
-//			}
-//		}
-//		Color color = Color.WHITE;
-//		for (int z = 0; z < 9; z++) {
-//			for (int x = 0; x < 3; x++) {
-//				for (int y = 0; y < 3; y++) {
-//					JTextField txt = txtGame[z][x][y];
-//					txt.addFocusListener(textFocusListener);
-//					if (txt == lastFocusTextFiled) {
-//						row = Cell.getX(z, x);
-//						col = Cell.getY(z, y);
-//						if (!check(row, col)) {
-//							color = Color.red;
-//							txt.setBackground(color);
-//						}
-//						else
-//							txt.setBackground(color);
-//					}
-//
-//				}
-//			}
-//		}
-	this.setVisible(true);
-
-	}
-
-//	public boolean check(int row, int col) {// 判断对错
-//		boolean b = true;
-//		for (int c = 0; c < 9; c++) {
-//			if (change[row][col] == change[row][c] && col != c) {
-//				b = false;
-//				break;
-//			}
-//		}
-//		for (int r = 0; r < 9; r++) {
-//			if (change[row][col] == change[r][col] && row != r) {
-//				b = false;
-//				break;
-//			}
-//		}
-//
-//		return b;
-//
-//	}
-
-	public static void check() { /** 判断对错 */// TODO
-		int countFalse = 0;
-
-		int[][] change = new int[9][9];
-		/** 将数独内容转换成9*9int数组change */
-		for (int z = 0; z < 9; z++) {
-			for (int x = 0; x < 3; x++) {
-				for (int y = 0; y < 3; y++) {
-					if (!txtGame[z][x][y].getText().isEmpty())
-						change[Cell.getX(z, x)][Cell.getY(z, y)] = Integer.parseInt(txtGame[z][x][y].getText());
-					else
-						change[Cell.getX(z, x)][Cell.getY(z, y)] = 0;
+				if (!(x == x0 && y == y0) && txtGame[z0][x0][y0].getText().equals(value)) {
+					txtGame[z0][x][y].setForeground(Color.red);
+					txtGame[z0][x0][y0].setForeground(Color.red);
+					/** 将冲突的两个文本框中的数字交替放入map中 */
+					warnFiledMap.put(txtGame[z0][x][y], txtGame[z0][x0][y0]);
+					warnFiledMap.put(txtGame[z0][x0][y0], txtGame[z0][x][y]);
+					return;
 				}
 			}
 		}
-		int row, col;
+
+	}
+
+	/** 文本属性变化 */
+	public void changedUpdate(DocumentEvent documentEvent) {
+
+	}
+
+	/** 插入新数据 */
+	public void insertUpdate(DocumentEvent documentEvent) {// TODO
+		doc = (Document) documentEvent.getDocument();
+		int[] location = new int[3];
+		int x, y, z;
+		String value;
+		// 控制文本框显示的数字始终1个并且是刚键入的数字,没有冲突
+		this.validInput(0);
+		/** 如果输入的是数字 */
+		if (isNumber == 1) {
+			/** 当存在冲突时接受不能冲突field之外的其他输入 */
+			if (warnFiledMap.size() != 0) {
+				/** 根据触发的document找到填入此数字的field坐标 */
+				this.findFieldLocationByDocument(location);
+				z = location[0];
+				x = location[1];
+				y = location[2];
+				/** 如果修改冲突域的数字 */
+				if (warnFiledMap.get(txtGame[z][x][y]) != null) {
+					value = txtGame[z][x][y].getText();
+					value = value.substring(value.length() - 1, value.length());
+					if (!value.equals(warnFiledMap.get(txtGame[z][x][y]).getText())) {
+						txtGame[z][x][y].setForeground(Color.black);
+						warnFiledMap.get(txtGame[z][x][y]).setForeground(Color.black);
+						warnFiledMap.clear();/** 清空冲突域 */
+					}
+					/** 根据坐标检查填入的数字是否正确 */
+					this.check(location[0], location[1], location[2]);
+				}
+				/** 禁止其他文本框输入 */
+				else {
+					this.validInput(1);
+				}
+			} else {
+				this.findFieldLocationByDocument(location);
+				// 根据坐标去检查填入数字是否正确
+				this.check(location[0], location[1], location[2]);
+			}
+		} else {
+			isNumber = 1;// 将数字开关重置，等待下次重新输入
+		}
+	}
+
+	void validInput(int inputNumber) {
+		String value;
+		// 下面都是开启线程来重置输入的值 否则insertUpdate的写锁会导致无法控制输入
+
+		// 如果不是数字就禁止输入
+		try {
+			value = doc.getText(0, doc.getLength());
+			value = value.substring(value.length() - 1, value.length());
+			if (!Pattern.matches("\\d*", value)) {
+				new Thread(new Thread() {
+					public void run() {
+						try {
+							doc.remove(doc.getLength() - 1, 1);// 触发removeUpdate事件 将刚输入的非法字符清空
+						} catch (Exception exp) {
+							System.out.println("Error: " + exp.toString());
+						}
+					}
+				}).start();
+				isNumber = 0;// 输入的不是数字
+				removedNumberByInsert = 1;// remove由insert导致
+				return;// 不是数字就直接返回
+			}
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
+
+		if (inputNumber == 1 && doc.getLength() > 0) {
+			try {
+				new Thread(new Thread() {
+
+					public void run() {
+						try {
+							doc.remove(0, doc.getLength());// 这里会触发一个removeUpdate事件,输入全部清空
+						} catch (Exception exp) {
+							System.out.println("Error: " + exp.toString());
+						}
+					}
+				}).start();
+				removedNumberByInsert = 1;// remove由insert导致
+			} catch (Exception ex) {
+				System.out.println("Error: " + ex.toString());
+			}
+		}
+
+		if (doc.getLength() > 1 && inputNumber == 0) {
+			try {
+				new Thread(new Thread() {
+					public void run() {
+						try {
+							doc.remove(0, doc.getLength() - 1);// 这里会触发一个removeUpdate事件
+						} catch (Exception exp) {
+							System.out.println("Error: " + exp.toString());
+						}
+					}
+				}).start();
+				removedNumberByInsert = 1;// remove由insert导致
+			} catch (Exception ex) {
+				System.out.println("Error: " + ex.toString());
+			}
+		}
+
+	}
+
+	/** 删除数字后更新 */
+	public void removeUpdate(DocumentEvent documentEvent) {
+		doc = (Document) documentEvent.getDocument();
+		int[] location = new int[3];
+		int x, y, z;
+		if (removedNumberByInsert == 0) {
+			this.findFieldLocationByDocument(location);
+			z = location[0];
+			x = location[1];
+			y = location[2];
+			if (warnFiledMap.get(txtGame[z][x][y]) != null) {
+				txtGame[z][x][y].setForeground(Color.black);
+				warnFiledMap.get(txtGame[z][x][y]).setForeground(Color.black);
+			}
+		}
+	}
+
+	private void findFieldLocationByDocument(int[] location) {
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
 				for (int y = 0; y < 3; y++) {
-					JTextField txt = txtGame[z][x][y];
-
-					if (txt.isEditable()) {
-						txt.addFocusListener(new FocusListener() {
-
-							// 获得焦点
-							@Override
-							public void focusGained(FocusEvent e) {
-								focus.setText(txt.getText());
-							}
-
-							// 失去焦点
-							@Override
-							public void focusLost(FocusEvent e) {
-
-							}
-
-						});
-
-						if (txtGame[z][x][y].getText().equals(focus.getText())) {
-							row = Cell.getX(z, x);
-							col = Cell.getY(z, y);
-							for (int c = 0; c < 9; c++) {
-								if (change[row][col] == change[row][c]) {
-									countFalse++;
-									break;
-								}
-							}
-							for (int r = 0; r < 9; r++) {
-								if (change[row][col] == change[r][col]) {
-									countFalse++;
-									break;
-								}
-							}
-
-						}
+					if (txtGame[z][x][y].getDocument() == doc) {
+						location[0] = z;
+						location[1] = x;
+						location[2] = y;
 					}
 				}
 			}
-
-			Color color = Color.WHITE;
-			if (countFalse > 0)
-				color = Color.red;
-			focus.setBackground(color);
 		}
+
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
+
 		new Sudoku();
+		int mm = 1;
+		while (mm > 0) {
+			int mmm = 0;
+			while (end()) {
+				mmm++;
+			}
 
-		int mm = 0;
-		while (end()) {
-			mm++;
-		}
-		if (!end()) {
-			goOn = false;
-			JDialog dialog = new JDialog(); // Create Frame
-			dialog.setBounds(300, 200, 300, 200);
-			dialog.setVisible(true);
-			JLabel jl2 = new JLabel("游戏结束！用时  " + format(elapsed) + "  点击确定继续"); // create a label
-			final JButton but = new JButton("确定");
-			dialog.setModal(true);
-			dialog.setLayout(new FlowLayout());
-			dialog.add(jl2);
-			dialog.add(but);
-			but.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					dialog.dispose();
-				}
-			});
+			if (!end()) {
+				goOn = false;
+				compareTime(elapsed);
+				JDialog dialog = new JDialog(); // Create Frame
+				dialog.setBounds(300, 200, 600, 400);
+				dialog.setVisible(true);
 
+				JLabel jl2 = new JLabel("游戏结束！用时  " + format(elapsed) + "最高纪录为" + format(timeRecord) + "  点击确定继续"); // create
+																													// a
+																													// label
+
+				final JButton but = new JButton("确定");
+				dialog.setModal(true);
+				dialog.setLayout(new FlowLayout());
+				dialog.add(jl2);
+				dialog.add(but);
+
+				but.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						dialog.dispose();
+					}
+				});
+
+				mm++;
+			}
 		}
 	}
 
@@ -561,5 +680,53 @@ public class Sudoku extends JFrame {
 		elapsed = elapsed / 60;
 		hour = (int) (elapsed % 60);
 		return String.format("%02d:%02d:%02d %03d", hour, minute, second, milli);
+	}
+
+	private static void compareTime(long t) throws FileNotFoundException {
+		// TODO Auto-generated method stub
+		write(t);
+		File inputFile = new File("record.txt");
+		Scanner input = new Scanner(inputFile);
+		timeRecord = input.nextLong();
+		long l = -1;
+		while (input.hasNextLong()) {
+			l = input.nextLong();
+			if (l < timeRecord)
+				timeRecord = l;
+
+		}
+	}
+
+	private static void write(long t) {
+		FileOutputStream o = null;
+
+		byte[] buff = new byte[] {};
+
+		try {
+
+			File file = new File("record.txt");
+
+			if (!file.exists()) {
+
+				file.createNewFile();
+
+			}
+
+			buff = String.valueOf(t).getBytes();
+
+			o = new FileOutputStream(file, true);
+
+			o.write(buff);
+			byte[] bu = new byte[] { ' ' };
+			o.write(bu);
+			o.flush();
+
+			o.close();
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+
+		}
 	}
 }
