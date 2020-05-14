@@ -1,9 +1,5 @@
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import java.awt.Color;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -13,32 +9,20 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 
-/**
- * 
- * @author hjq&jtl
- *
- */
-public class Sudoku extends JFrame implements DocumentListener {
+public class Sudoku extends JFrame {
 	private JPanel[] pnlGame;
 	private static JTextField[][][] txtGame;
-	private static int[][][] editableLocation = new int[9][3][3];
 	private JTextField lastFocusTextFiled;
+	private int[][] change;
 	private JLabel time;
 	private CountingThread thread = new CountingThread();
-	private long programStart;
+	private static long programStart;
 	private static boolean goOn = true;
 	private static long elapsed;
 	private static int count2 = 0;
 	private static long timeRecord;
-	private Map<JTextField, JTextField> warnFiledMap = new HashMap<JTextField, JTextField>();
-	private Document doc;
-	private int isNumber = 1;
-	/** 输入的是否为数字 */
-	private int removedNumberByInsert = 0;
-	/** remove是不是在已有值的前提下insert一个新值导致的 */
-
+	private static Map<JTextField, JTextField> warnFiledMap = new HashMap<JTextField, JTextField>();
 	private FocusListener textFocusListener = new FocusListener() {
 		@Override
 		public void focusGained(FocusEvent e) {
@@ -50,9 +34,8 @@ public class Sudoku extends JFrame implements DocumentListener {
 			lastFocusTextFiled = (JTextField) e.getComponent();
 		}
 	};
-
 	private ButtonGroup group;
-	private int count;
+	private static int count;
 	private static int key;
 	private static int t = 3;
 
@@ -60,6 +43,7 @@ public class Sudoku extends JFrame implements DocumentListener {
 		pnlGame = new JPanel[12];
 		txtGame = new JTextField[9][3][3];
 		gridInit();
+		check();
 	}
 
 	public void gridInit() {
@@ -76,9 +60,9 @@ public class Sudoku extends JFrame implements DocumentListener {
 				pnlGame[i].setLayout(new GridLayout(3, 3));
 				this.add(pnlGame[i]);
 			} else if (i == 3) {
-				JButton btn1 = new JButton("新游戏"); /** 新游戏按钮 */
-				JButton btn2 = new JButton("存档"); /** 存档按钮 */
-				JButton btn3 = new JButton("读档"); /** 读档按钮 */
+				JButton btn1 = new JButton("新游戏"); // 新游戏按钮
+				JButton btn2 = new JButton("存档"); // 存档按钮
+				JButton btn3 = new JButton("读档"); // 读档按钮
 				btn1.addActionListener(new ActionListener() {
 
 					@Override
@@ -90,9 +74,11 @@ public class Sudoku extends JFrame implements DocumentListener {
 							count2++;
 						}
 						String[][] n = new String[9][9];
+						if (count == 10 || count == 20 || count == 30)
+							count = count - 10;
 						count++;
 						try {
-							n = readFromFile(String.format("%d.txt", count)); /** 从文件中读取题目 */
+							n = readfromFile(String.format("%d.txt", count)); // 从文件中读取题目
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						}
@@ -104,7 +90,6 @@ public class Sudoku extends JFrame implements DocumentListener {
 									if (n[x][y + 3 * z].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
-										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x][y + 3 * z]);
 										txtGame[z][x][y].setEditable(false);
@@ -118,7 +103,6 @@ public class Sudoku extends JFrame implements DocumentListener {
 									if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
-										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
 										txtGame[z][x][y].setEditable(false);
@@ -132,7 +116,6 @@ public class Sudoku extends JFrame implements DocumentListener {
 									if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
-										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
 										txtGame[z][x][y].setEditable(false);
@@ -143,7 +126,6 @@ public class Sudoku extends JFrame implements DocumentListener {
 					}
 				});
 				btn2.addActionListener(new ActionListener() {
-
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						try {
@@ -158,10 +140,12 @@ public class Sudoku extends JFrame implements DocumentListener {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						programStart = System.currentTimeMillis();
+						goOn = true;
 						String[][] n = new String[9][9];
 						try {
-							n = readFromFile("save.txt");
+							n = readfromFile("save.txt");
 						} catch (FileNotFoundException e1) {
+							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 						for (int z = 0; z < 3; z++) {
@@ -170,7 +154,6 @@ public class Sudoku extends JFrame implements DocumentListener {
 									if (n[x][y + 3 * z].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
-										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x][y + 3 * z]);
 										txtGame[z][x][y].setEditable(false);
@@ -184,7 +167,6 @@ public class Sudoku extends JFrame implements DocumentListener {
 									if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
-										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
 										txtGame[z][x][y].setEditable(false);
@@ -198,7 +180,6 @@ public class Sudoku extends JFrame implements DocumentListener {
 									if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
 										txtGame[z][x][y].setText("");
 										txtGame[z][x][y].setEditable(true);
-										editableLocation[z][x][y] = 1;
 									} else {
 										txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
 										txtGame[z][x][y].setEditable(false);
@@ -226,13 +207,12 @@ public class Sudoku extends JFrame implements DocumentListener {
 			} else {
 
 				pnlGame[i] = new JPanel();
-				JButton btn3 = new JButton("提示"); /** Create JButton object */
+				JButton btn3 = new JButton("提示"); // Create JButton object
 				JTextField time = new JTextField();
 				time.setText(String.valueOf(t));
 				time.setEditable(false);
 				pnlGame[i].add(time);
 				btn3.addActionListener(new ActionListener() {
-
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						if (lastFocusTextFiled == null) {
@@ -247,11 +227,11 @@ public class Sudoku extends JFrame implements DocumentListener {
 							time.setEditable(false);
 							String[][] n = new String[9][9];
 							try {
-								n = readFromFile(String.format("%d.txt", count + 30)); /** 从文件中读取答案 */
+								n = readfromFile(String.format("%d.txt", count + 30)); // 从文件中读取答案
 							} catch (FileNotFoundException e1) {
 								e1.printStackTrace();
 							}
-							/** 获得需要提示的txt位置 */
+							// 获得需要提示的txt位置
 							lastFocusTextFiled.setText("");// TODO
 							for (int z = 0; z < 9; z++) {
 								for (int x = 0; x < 3; x++) {
@@ -265,24 +245,32 @@ public class Sudoku extends JFrame implements DocumentListener {
 							}
 
 						} else {
-							JFrame zero = new JFrame("错误"); /** Create Frame */
-							zero.setBounds(300, 200, 600, 500);
-							zero.setVisible(true);
-							zero.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-							JLabel jl2 = new JLabel("你的提示次数已用完"); /** create a label */
-							Container c = zero.getContentPane(); /** get the window */
-							c.add(jl2); /** add label to window */
-							c.setVisible(true);
+							JDialog dialog = new JDialog(); // Create Frame
+							dialog.setBounds(300, 200, 300, 200);
+							dialog.setVisible(true);
+							JLabel jl2 = new JLabel("你的提示次数已用完，点击确定继续"); // create a label
+							final JButton but = new JButton("确定");
+							dialog.setModal(true);
+							dialog.setLayout(new FlowLayout());
+							dialog.add(jl2);
+							dialog.add(but);
+							but.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									dialog.dispose();
+								}
+							});
 						}
 					}
 				});
+
 				pnlGame[i].add(btn3);
 				this.add(pnlGame[i]);
 			}
 
 		}
 
-		/** 填数独 */
+		// 填数独
 		int tt = 0;
 		for (int z = 0; z < 9; z++) {
 			if ((z + 1 + tt) % 4 == 0)
@@ -292,30 +280,51 @@ public class Sudoku extends JFrame implements DocumentListener {
 					txtGame[z][x][y] = new JTextField();
 					txtGame[z][x][y].addFocusListener(textFocusListener);
 					txtGame[z][x][y].setBorder(BorderFactory.createEtchedBorder());
-					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));/** Set size and font */
-					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);/** set position */
+					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));// Set size and font
+					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);// set position
 					pnlGame[z + tt].add(txtGame[z][x][y]);
-					if (editableLocation[z][x][y] == 1)
-					txtGame[z][x][y].getDocument().addDocumentListener(this);
+
 				}
 			}
 		}
-		this.setVisible(true);
-		
-//		for (int z = 0; z < 9; z++) {
-//			for (int x = 0; x < 3; x++) {
-//				for (int y = 0; y < 3; y++) {
-//					if (edibleLocation[z][x][y] == 1)
-//						txtGame[z][x][y].getDocument().addDocumentListener(this);
-//				}
-//			}
-//		}
 
-		
+		this.setVisible(true);
 
 	}
 
-	private void check(int z0, int x0, int y0) { /** 判断对错 */// TODO
+	public void check() {// TODO
+		JTextField txt;
+		for (int z = 0; z < 9; z++) {
+			for (int x = 0; x < 3; x++) {
+				for (int y = 0; y < 3; y++) {
+					txt = txtGame[z][x][y];
+					Key(txt,z,x,y);
+				}
+			}
+		}
+	}
+	
+	private static void Key(JTextField txt,int z, int x, int y) {
+		txt.addKeyListener(new KeyAdapter() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+				
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				check(z,x,y);
+			}
+		});
+	}
+	
+	private static void check(int z0, int x0, int y0) { /** 判断对错 */// TODO
 		int[] xAxis = new int[2];/** 以z小九宫格为标准，x轴方向遍历 */
 		int[] yAxis = new int[2];/** 以z小九宫格为标准，y轴方向遍历 */
 		String value = txtGame[z0][x0][y0].getText();
@@ -386,154 +395,13 @@ public class Sudoku extends JFrame implements DocumentListener {
 
 	}
 
-	/** 文本属性变化 */
-	public void changedUpdate(DocumentEvent documentEvent) {
-
-	}
-
-	/** 插入新数据 */
-	public void insertUpdate(DocumentEvent documentEvent) {// TODO
-		doc = (Document) documentEvent.getDocument();
-		int[] location = new int[3];
-		int x, y, z;
-		String value;
-		// 控制文本框显示的数字始终1个并且是刚键入的数字,没有冲突
-		this.validInput(0);
-		/** 如果输入的是数字 */
-		if (isNumber == 1) {
-			/** 当存在冲突时接受不能冲突field之外的其他输入 */
-			if (warnFiledMap.size() != 0) {
-				/** 根据触发的document找到填入此数字的field坐标 */
-				this.findFieldLocationByDocument(location);
-				z = location[0];
-				x = location[1];
-				y = location[2];
-				/** 如果修改冲突域的数字 */
-				if (warnFiledMap.get(txtGame[z][x][y]) != null) {
-					value = txtGame[z][x][y].getText();
-					value = value.substring(value.length() - 1, value.length());
-					if (!value.equals(warnFiledMap.get(txtGame[z][x][y]).getText())) {
-						txtGame[z][x][y].setForeground(Color.black);
-						warnFiledMap.get(txtGame[z][x][y]).setForeground(Color.black);
-						warnFiledMap.clear();/** 清空冲突域 */
-					}
-					/** 根据坐标检查填入的数字是否正确 */
-					this.check(location[0], location[1], location[2]);
-				}
-				/** 禁止其他文本框输入 */
-				else {
-					this.validInput(1);
-				}
-			} else {
-				this.findFieldLocationByDocument(location);
-				// 根据坐标去检查填入数字是否正确
-				this.check(location[0], location[1], location[2]);
-			}
-		} else {
-			isNumber = 1;// 将数字开关重置，等待下次重新输入
-		}
-	}
-
-	void validInput(int inputNumber) {
-		String value;
-		// 下面都是开启线程来重置输入的值 否则insertUpdate的写锁会导致无法控制输入
-
-		// 如果不是数字就禁止输入
-		try {
-			value = doc.getText(0, doc.getLength());
-			value = value.substring(value.length() - 1, value.length());
-			if (!Pattern.matches("\\d*", value)) {
-				new Thread(new Thread() {
-					public void run() {
-						try {
-							doc.remove(doc.getLength() - 1, 1);// 触发removeUpdate事件 将刚输入的非法字符清空
-						} catch (Exception exp) {
-							System.out.println("Error: " + exp.toString());
-						}
-					}
-				}).start();
-				isNumber = 0;// 输入的不是数字
-				removedNumberByInsert = 1;// remove由insert导致
-				return;// 不是数字就直接返回
-			}
-		} catch (BadLocationException e) {
-			e.printStackTrace();
-		}
-
-		if (inputNumber == 1 && doc.getLength() > 0) {
-			try {
-				new Thread(new Thread() {
-
-					public void run() {
-						try {
-							doc.remove(0, doc.getLength());// 这里会触发一个removeUpdate事件,输入全部清空
-						} catch (Exception exp) {
-							System.out.println("Error: " + exp.toString());
-						}
-					}
-				}).start();
-				removedNumberByInsert = 1;// remove由insert导致
-			} catch (Exception ex) {
-				System.out.println("Error: " + ex.toString());
-			}
-		}
-
-		if (doc.getLength() > 1 && inputNumber == 0) {
-			try {
-				new Thread(new Thread() {
-					public void run() {
-						try {
-							doc.remove(0, doc.getLength() - 1);// 这里会触发一个removeUpdate事件
-						} catch (Exception exp) {
-							System.out.println("Error: " + exp.toString());
-						}
-					}
-				}).start();
-				removedNumberByInsert = 1;// remove由insert导致
-			} catch (Exception ex) {
-				System.out.println("Error: " + ex.toString());
-			}
-		}
-
-	}
-
-	/** 删除数字后更新 */
-	public void removeUpdate(DocumentEvent documentEvent) {
-		doc = (Document) documentEvent.getDocument();
-		int[] location = new int[3];
-		int x, y, z;
-		if (removedNumberByInsert == 0) {
-			this.findFieldLocationByDocument(location);
-			z = location[0];
-			x = location[1];
-			y = location[2];
-			if (warnFiledMap.get(txtGame[z][x][y]) != null) {
-				txtGame[z][x][y].setForeground(Color.black);
-				warnFiledMap.get(txtGame[z][x][y]).setForeground(Color.black);
-			}
-		}
-	}
-
-	private void findFieldLocationByDocument(int[] location) {
-		for (int z = 0; z < 9; z++) {
-			for (int x = 0; x < 3; x++) {
-				for (int y = 0; y < 3; y++) {
-					if (txtGame[z][x][y].getDocument() == doc) {
-						location[0] = z;
-						location[1] = x;
-						location[2] = y;
-					}
-				}
-			}
-		}
-
-	}
+	
 
 	public static void main(String[] args) throws FileNotFoundException {
 
 		new Sudoku();
-		int mm = 1;
-		while (mm > 0) {
+		boolean e = true;
+		while (e) {
 			int mmm = 0;
 			while (end()) {
 				mmm++;
@@ -546,10 +414,9 @@ public class Sudoku extends JFrame implements DocumentListener {
 				dialog.setBounds(300, 200, 600, 400);
 				dialog.setVisible(true);
 
-				JLabel jl2 = new JLabel("游戏结束！用时  " + format(elapsed) + "最高纪录为" + format(timeRecord) + "  点击确定继续"); // create
-																													// a
-																													// label
-
+				JLabel jl2 = new JLabel("游戏结束！用时  " + format(elapsed) + "最高纪录为  " + format(timeRecord) + "  点击确定继续"); // create
+																														// a
+																														// label
 				final JButton but = new JButton("确定");
 				dialog.setModal(true);
 				dialog.setLayout(new FlowLayout());
@@ -562,19 +429,19 @@ public class Sudoku extends JFrame implements DocumentListener {
 						dialog.dispose();
 					}
 				});
-
-				mm++;
 			}
+			newGame();
 		}
+
 	}
 
-	private static boolean end() {/** 判断游戏是否结束 */
+	private static boolean end() {
 		int empty = 0;
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
 				for (int y = 0; y < 3; y++) {
-					JTextField txt = txtGame[z][x][y];
-					if (txt.getText().isEmpty())
+
+					if (txtGame[z][x][y].getText().isEmpty())
 						empty++;
 				}
 			}
@@ -582,7 +449,7 @@ public class Sudoku extends JFrame implements DocumentListener {
 		return empty != 0;
 	}
 
-	public static String[][] readFromFile(String filename) throws FileNotFoundException {/** 读取文件 */
+	public static String[][] readfromFile(String filename) throws FileNotFoundException {
 		String[][] s = new String[9][9];
 		File inputFile = new File(filename);
 		Scanner input = new Scanner(inputFile);
@@ -595,7 +462,7 @@ public class Sudoku extends JFrame implements DocumentListener {
 
 	}
 
-	private void addJRadioButton(final String text, int i) {/** 添加难度选择按钮 */
+	private void addJRadioButton(final String text, int i) {
 		JRadioButton radioButton = new JRadioButton(text);
 		group.add(radioButton);
 		pnlGame[i].add(radioButton);
@@ -603,6 +470,7 @@ public class Sudoku extends JFrame implements DocumentListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
 
 				if ("易".equals(text))
 					count = 0;
@@ -619,7 +487,7 @@ public class Sudoku extends JFrame implements DocumentListener {
 
 	}
 
-	public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {/** 存档 */
+	public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {
 		String[][] s = new String[9][9];
 
 		for (int z = 0; z < 9; z++) {
@@ -729,4 +597,60 @@ public class Sudoku extends JFrame implements DocumentListener {
 
 		}
 	}
+
+	public static void newGame() {
+		programStart = System.currentTimeMillis();
+		goOn = true;
+
+		String[][] n = new String[9][9];
+		count++;
+		try {
+			n = readfromFile(String.format("%d.txt", count)); // 从文件中读取题目
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+
+		// fill some numbers randomly
+		for (int z = 0; z < 3; z++) {
+			for (int x = 0; x < 3; x++) {
+				for (int y = 0; y < 3; y++) {
+					if (n[x][y + 3 * z].equals("0")) {
+						txtGame[z][x][y].setText("");
+						txtGame[z][x][y].setEditable(true);
+					} else {
+						txtGame[z][x][y].setText(n[x][y + 3 * z]);
+						txtGame[z][x][y].setEditable(false);
+					}
+				}
+			}
+		}
+		for (int z = 3; z < 6; z++) {
+			for (int x = 0; x < 3; x++) {
+				for (int y = 0; y < 3; y++) {
+					if (n[x + 3][y + 3 * (z - 3)].equals("0")) {
+						txtGame[z][x][y].setText("");
+						txtGame[z][x][y].setEditable(true);
+					} else {
+						txtGame[z][x][y].setText(n[x + 3][y + 3 * (z - 3)]);
+						txtGame[z][x][y].setEditable(false);
+					}
+				}
+			}
+		}
+		for (int z = 6; z < 9; z++) {
+			for (int x = 0; x < 3; x++) {
+				for (int y = 0; y < 3; y++) {
+					if (n[x + 6][y + 3 * (z - 6)].equals("0")) {
+						txtGame[z][x][y].setText("");
+						txtGame[z][x][y].setEditable(true);
+					} else {
+						txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
+						txtGame[z][x][y].setEditable(false);
+					}
+				}
+			}
+		}
+
+	}
+
 }
