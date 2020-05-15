@@ -1,5 +1,4 @@
 import javax.swing.*;
-import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -10,11 +9,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * 
+ * @author hjq&jtl
+ *
+ */
 public class Sudoku extends JFrame {
 	private JPanel[] pnlGame;
 	private static JTextField[][][] txtGame;
 	private JTextField lastFocusTextFiled;
-	private int[][] change;
+	private static String[][] n = new String[9][9];
 	private JLabel time;
 	private CountingThread thread = new CountingThread();
 	private static long programStart;
@@ -23,6 +27,11 @@ public class Sudoku extends JFrame {
 	private static int count2 = 0;
 	private static long timeRecord;
 	private static Map<JTextField, JTextField> warnFiledMap = new HashMap<JTextField, JTextField>();
+	private ButtonGroup group;
+	private static int count;
+	private static int t = 3;
+	
+	//焦点监听器
 	private FocusListener textFocusListener = new FocusListener() {
 		@Override
 		public void focusGained(FocusEvent e) {
@@ -34,35 +43,46 @@ public class Sudoku extends JFrame {
 			lastFocusTextFiled = (JTextField) e.getComponent();
 		}
 	};
-	private ButtonGroup group;
-	private static int count;
-	private static int key;
-	private static int t = 3;
+	
 
 	public Sudoku() {
 		pnlGame = new JPanel[12];
 		txtGame = new JTextField[9][3][3];
 		gridInit();
-		check();
+
 	}
 
+	/**游戏初始化*/
 	public void gridInit() {
 		this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
 		this.setSize(800, 600);
 		this.setResizable(false);
 		this.setTitle("Suduko");
-		this.setLayout(new GridLayout(3, 4)); // set layout
+		// set layout
+		this.setLayout(new GridLayout(3, 4));
+
+		try {
+			n = readfromFile("save.txt");
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
 
 		for (int i = 0; i < 12; i++) {
 			if ((i + 1) % 4 != 0) {
 				pnlGame[i] = new JPanel();
-				pnlGame[i].setBorder(BorderFactory.createLineBorder(Color.black)); // use border to draw the grid
+				// use border to draw the grid
+				pnlGame[i].setBorder(BorderFactory.createLineBorder(Color.black));
 				pnlGame[i].setLayout(new GridLayout(3, 3));
 				this.add(pnlGame[i]);
 			} else if (i == 3) {
-				JButton btn1 = new JButton("新游戏"); // 新游戏按钮
-				JButton btn2 = new JButton("存档"); // 存档按钮
-				JButton btn3 = new JButton("读档"); // 读档按钮
+				// 新游戏按钮
+				JButton btn1 = new JButton("新游戏");
+				// 存档按钮
+				JButton btn2 = new JButton("存档");
+				// 读档按钮
+				JButton btn3 = new JButton("读档");
+				
+				// 新游戏按钮监听
 				btn1.addActionListener(new ActionListener() {
 
 					@Override
@@ -77,13 +97,13 @@ public class Sudoku extends JFrame {
 						if (count == 10 || count == 20 || count == 30)
 							count = count - 10;
 						count++;
-						try {
-							n = readfromFile(String.format("%d.txt", count)); // 从文件中读取题目
+						try { // 从文件中读取题目
+							n = readfromFile(String.format("%d.txt", count));
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						}
 
-						// fill some numbers randomly
+						// 将题目填入九宫格中
 						for (int z = 0; z < 3; z++) {
 							for (int x = 0; x < 3; x++) {
 								for (int y = 0; y < 3; y++) {
@@ -125,6 +145,8 @@ public class Sudoku extends JFrame {
 						}
 					}
 				});
+				
+				// 存档按钮监听
 				btn2.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -136,6 +158,8 @@ public class Sudoku extends JFrame {
 
 					}
 				});
+				
+				// 读档按钮监听
 				btn3.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -145,7 +169,6 @@ public class Sudoku extends JFrame {
 						try {
 							n = readfromFile("save.txt");
 						} catch (FileNotFoundException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 						for (int z = 0; z < 3; z++) {
@@ -207,7 +230,8 @@ public class Sudoku extends JFrame {
 			} else {
 
 				pnlGame[i] = new JPanel();
-				JButton btn3 = new JButton("提示"); // Create JButton object
+				// 创建提示按钮
+				JButton btn3 = new JButton("提示");
 				JTextField time = new JTextField();
 				time.setText(String.valueOf(t));
 				time.setEditable(false);
@@ -226,8 +250,8 @@ public class Sudoku extends JFrame {
 							time.setText(String.valueOf(t));
 							time.setEditable(false);
 							String[][] n = new String[9][9];
-							try {
-								n = readfromFile(String.format("%d.txt", count + 30)); // 从文件中读取答案
+							try {// 从文件中读取答案
+								n = readfromFile(String.format("%d.txt", count + 30));
 							} catch (FileNotFoundException e1) {
 								e1.printStackTrace();
 							}
@@ -245,14 +269,16 @@ public class Sudoku extends JFrame {
 							}
 
 						} else {
-							JDialog dialog = new JDialog(); // Create Frame
+							// Create Frame
+							JDialog dialog = new JDialog();
 							dialog.setBounds(300, 200, 300, 200);
 							dialog.setVisible(true);
-							JLabel jl2 = new JLabel("你的提示次数已用完，点击确定继续"); // create a label
+							JLabel jl2 = new JLabel("你的提示次数已用完，点击确定继续");
+							// Create a label
 							final JButton but = new JButton("确定");
 							dialog.setModal(true);
 							dialog.setLayout(new FlowLayout());
-							dialog.add(jl2);
+							dialog.add(jl2);/** add label to window */
 							dialog.add(but);
 							but.addActionListener(new ActionListener() {
 								@Override
@@ -280,112 +306,146 @@ public class Sudoku extends JFrame {
 					txtGame[z][x][y] = new JTextField();
 					txtGame[z][x][y].addFocusListener(textFocusListener);
 					txtGame[z][x][y].setBorder(BorderFactory.createEtchedBorder());
-					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));// Set size and font
-					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);// set position
+					// 设置字体和大小
+					txtGame[z][x][y].setFont(new Font("Dialog", Font.ITALIC, 20));
+					// 设置输入数字在文本框中的位置
+					txtGame[z][x][y].setHorizontalAlignment(JTextField.CENTER);
 					pnlGame[z + tt].add(txtGame[z][x][y]);
 
 				}
 			}
 		}
 
+		// 错误提示
+//		for (int z = 0; z < 9; z++) {
+//			for (int x = 0; x < 3; x++) {
+//				for (int y = 0; y < 3; y++) {
+//					check();
+//				}
+//			}
+//		}
+
 		this.setVisible(true);
 
 	}
 
-	public void check() {// TODO
-		JTextField txt;
+	public void check() {
+		/** 判断输入数字是否冲突 */
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
 				for (int y = 0; y < 3; y++) {
-					txt = txtGame[z][x][y];
-					Key(txt,z,x,y);
+					Key(txtGame[z][x][y], z, x, y);
 				}
 			}
 		}
 	}
-	
-	private static void Key(JTextField txt,int z, int x, int y) {
+
+	private static void Key(JTextField txt, int z, int x, int y) {/** 键盘监听输入数字 */// TODO
 		txt.addKeyListener(new KeyAdapter() {
 
 			@Override
 			public void keyTyped(KeyEvent e) {
-				
+				// 键盘输入内容触发事件
+				while (true) {
+					check(z, x, y);
+					// 如果有冲突
+					if (warnFiledMap.size() != 0) {
+						// 如果修改冲突域的数字
+						if (warnFiledMap.get(txtGame[z][x][y]) != null) {
+							if (!txtGame[z][x][y].getText().equals(warnFiledMap.get(txtGame[z][x][y]).getText())) {
+								txtGame[z][x][y].setForeground(Color.black);
+								warnFiledMap.get(txtGame[z][x][y]).setForeground(Color.black);
+								// 清空冲突域
+								warnFiledMap.clear();
+							}
+							// 根据坐标检查填入的数字是否正确
+							check(z, x, y);
+						}
+					} else// 如果没有冲突跳出循环
+						break;
+				}
 			}
 
 			@Override
 			public void keyPressed(KeyEvent e) {
-				
+
 			}
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				check(z,x,y);
+
 			}
 		});
 	}
-	
+
 	private static void check(int z0, int x0, int y0) { /** 判断对错 */// TODO
-		int[] xAxis = new int[2];/** 以z小九宫格为标准，x轴方向遍历 */
-		int[] yAxis = new int[2];/** 以z小九宫格为标准，y轴方向遍历 */
-		String value = txtGame[z0][x0][y0].getText();
-		value = value.substring(value.length() - 1, value.length());
-		if (z0 == 0 || z0 == 3 || z0 == 6) {/** 如果是0, 3 ,6 小九宫格，检查右面2个小九宫格 */
+		// 以z小九宫格为标准，x轴方向遍历
+		int[] xAxis = new int[2];
+		// 以z小九宫格为标准，y轴方向遍历
+		int[] yAxis = new int[2];
+		String value = txtGame[z0][x0][y0].getText().trim();
+		// 如果是0, 3 ,6 小九宫格，检查右面2个小九宫格
+		if (z0 == 0 || z0 == 3 || z0 == 6) {
 			xAxis[0] = z0 + 1;
 			xAxis[1] = z0 + 2;
-		} else if (z0 == 1 || z0 == 4 || z0 == 7) {/** 如果是1, 4, 7 小九宫格，检查左右两边的小九宫格 */
+		} // 如果是1, 4, 7 小九宫格，检查左右两边的小九宫格
+		else if (z0 == 1 || z0 == 4 || z0 == 7) {
 			xAxis[0] = z0 - 1;
 			xAxis[1] = z0 + 1;
-		} else if (z0 == 2 || z0 == 5 || z0 == 8) {/** 如果是2, 5, 8 小九宫格，检查左面2个小九宫格 */
+		} // 如果是2, 5, 8 小九宫格，检查左面2个小九宫格
+		else if (z0 == 2 || z0 == 5 || z0 == 8) {
 			xAxis[0] = z0 - 2;
 			xAxis[1] = z0 - 1;
 		}
-
-		if (z0 >= 6) {/** 6,7,8小九宫格 检查上面2个小九宫格 */
+		// 6,7,8小九宫格 检查上面2个小九宫格
+		if (z0 >= 6) {
 			yAxis[0] = z0 - 6;
 			yAxis[1] = z0 - 3;
-		} else if (z0 >= 3 && z0 < 6) {/** 3,4,5小九宫格 检查上下两个小九宫格 */
+		} // 3,4,5小九宫格 检查上下两个小九宫格
+		else if (z0 >= 3 && z0 < 6) {
 			yAxis[0] = z0 - 3;
 			yAxis[1] = z0 + 3;
-		} else if (z0 < 3) {/** 0,1,2小九宫格 检查下面2个小九宫格 */
+		} // 0,1,2小九宫格 检查下面2个小九宫格
+		else if (z0 < 3) {
 			yAxis[0] = z0 + 3;
 			yAxis[1] = z0 + 6;
 		}
 		int z;
-		/** 检查同一列中已存在的数据 */
+		// 检查同一列中已存在的数据
 		for (int i = 0; i < 2; i++) {
 			z = yAxis[i];
 			for (int x = 0; x < 3; x++) {
 				if (txtGame[z][x][y0].getText().equals(value)) {
 					txtGame[z][x][y0].setForeground(Color.red);
 					txtGame[z0][x0][y0].setForeground(Color.red);
-					/** 将冲突的两个文本框中的数字交替放入map中 */
+					// 将冲突的两个文本框中的数字交替放入map中
 					warnFiledMap.put(txtGame[z][x][y0], txtGame[z0][x0][y0]);
 					warnFiledMap.put(txtGame[z0][x0][y0], txtGame[z][x][y0]);
 					return;
 				}
 			}
 		}
-		/** 检查同一行中已存在的数据 */
+		// 检查同一行中已存在的数据
 		for (int i = 0; i < 2; i++) {
 			z = xAxis[i];
 			for (int y = 0; y < 3; y++) {
 				if (txtGame[z][x0][y].getText().equals(value)) {
 					txtGame[z][x0][y].setForeground(Color.red);
 					txtGame[z0][x0][y0].setForeground(Color.red);
-					/** 将冲突的两个文本框中的数字交替放入map中 */
+					// 将冲突的两个文本框中的数字交替放入map中
 					warnFiledMap.put(txtGame[z][x0][y], txtGame[z0][x0][y0]);
 					warnFiledMap.put(txtGame[z0][x0][y0], txtGame[z][x0][y]);
 					return;
 				}
 			}
 		}
-		/** 检查小九宫格内部数字 */
+		// 检查小九宫格内部数字
 		for (int x = 0; x < 3; x++) {
 			for (int y = 0; y < 3; y++) {
 				if (!(x == x0 && y == y0) && txtGame[z0][x0][y0].getText().equals(value)) {
 					txtGame[z0][x][y].setForeground(Color.red);
 					txtGame[z0][x0][y0].setForeground(Color.red);
-					/** 将冲突的两个文本框中的数字交替放入map中 */
+					// 将冲突的两个文本框中的数字交替放入map中
 					warnFiledMap.put(txtGame[z0][x][y], txtGame[z0][x0][y0]);
 					warnFiledMap.put(txtGame[z0][x0][y0], txtGame[z0][x][y]);
 					return;
@@ -395,9 +455,7 @@ public class Sudoku extends JFrame {
 
 	}
 
-	
-
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws FileNotFoundException {// TODO
 
 		new Sudoku();
 		boolean e = true;
@@ -410,13 +468,14 @@ public class Sudoku extends JFrame {
 			if (!end()) {
 				goOn = false;
 				compareTime(elapsed);
-				JDialog dialog = new JDialog(); // Create Frame
+				// Create Frame
+				JDialog dialog = new JDialog();
 				dialog.setBounds(300, 200, 600, 400);
 				dialog.setVisible(true);
 
-				JLabel jl2 = new JLabel("游戏结束！用时  " + format(elapsed) + "最高纪录为  " + format(timeRecord) + "  点击确定继续"); // create
-																														// a
-																														// label
+				// 弹出游戏结束对话框
+				JLabel jl2 = new JLabel("游戏结束！用时  " + format(elapsed) + "最高纪录为  " + format(timeRecord) + "  点击确定继续");
+
 				final JButton but = new JButton("确定");
 				dialog.setModal(true);
 				dialog.setLayout(new FlowLayout());
@@ -430,12 +489,13 @@ public class Sudoku extends JFrame {
 					}
 				});
 			}
+			// 开始新游戏
 			newGame();
 		}
 
 	}
 
-	private static boolean end() {
+	private static boolean end() {/** 判断游戏是否结束 */
 		int empty = 0;
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
@@ -449,7 +509,7 @@ public class Sudoku extends JFrame {
 		return empty != 0;
 	}
 
-	public static String[][] readfromFile(String filename) throws FileNotFoundException {
+	public static String[][] readfromFile(String filename) throws FileNotFoundException {/** 读取文件 */
 		String[][] s = new String[9][9];
 		File inputFile = new File(filename);
 		Scanner input = new Scanner(inputFile);
@@ -462,7 +522,7 @@ public class Sudoku extends JFrame {
 
 	}
 
-	private void addJRadioButton(final String text, int i) {
+	private void addJRadioButton(final String text, int i) {/** 添加难度选择按钮 */
 		JRadioButton radioButton = new JRadioButton(text);
 		group.add(radioButton);
 		pnlGame[i].add(radioButton);
@@ -470,8 +530,6 @@ public class Sudoku extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-
 				if ("易".equals(text))
 					count = 0;
 				else if ("中".equals(text))
@@ -487,7 +545,7 @@ public class Sudoku extends JFrame {
 
 	}
 
-	public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {
+	public static void SaveIntoFile(JTextField[][][] tf) throws FileNotFoundException {/** 存档 */
 		String[][] s = new String[9][9];
 
 		for (int z = 0; z < 9; z++) {
@@ -511,6 +569,11 @@ public class Sudoku extends JFrame {
 		output.close();
 	}
 
+	/**
+	 * 
+	 * @author hjq
+	 *
+	 */
 	private class CountingThread extends Thread {
 		public boolean goOn = true;
 
@@ -520,22 +583,21 @@ public class Sudoku extends JFrame {
 
 		@Override
 		public void run() {
+			/** 将毫秒数变为时秒分 */
 			while (true) {
 				if (goOn) {
 					elapsed = System.currentTimeMillis() - programStart;
 					time.setText(format(elapsed));
 				}
 				try {
-					sleep(1); // 1毫秒更新一次显示
+					// 1毫秒更新一次显示
+					sleep(1);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 					System.exit(1);
 				}
 			}
-
 		}
-		// 将毫秒数变为时秒分
-
 	}
 
 	public static String format(long elapsed) {
@@ -551,7 +613,6 @@ public class Sudoku extends JFrame {
 	}
 
 	private static void compareTime(long t) throws FileNotFoundException {
-		// TODO Auto-generated method stub
 		write(t);
 		File inputFile = new File("record.txt");
 		Scanner input = new Scanner(inputFile);
@@ -571,13 +632,9 @@ public class Sudoku extends JFrame {
 		byte[] buff = new byte[] {};
 
 		try {
-
 			File file = new File("record.txt");
-
 			if (!file.exists()) {
-
 				file.createNewFile();
-
 			}
 
 			buff = String.valueOf(t).getBytes();
@@ -592,25 +649,22 @@ public class Sudoku extends JFrame {
 			o.close();
 
 		} catch (Exception e) {
-
 			e.printStackTrace();
-
 		}
 	}
 
-	public static void newGame() {
+	public static void newGame() {/** 开始新游戏 */
 		programStart = System.currentTimeMillis();
 		goOn = true;
-
 		String[][] n = new String[9][9];
 		count++;
-		try {
-			n = readfromFile(String.format("%d.txt", count)); // 从文件中读取题目
+		try { // 从文件中读取题目
+			n = readfromFile(String.format("%d.txt", count));
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		}
 
-		// fill some numbers randomly
+		// 将题目填入九宫格中
 		for (int z = 0; z < 3; z++) {
 			for (int x = 0; x < 3; x++) {
 				for (int y = 0; y < 3; y++) {
