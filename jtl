@@ -33,7 +33,9 @@ public class Sudoku extends JFrame {
 	private static long programStart;
 	/** 判断游戏是否应该继续 */
 	private static boolean goOn = true;
+	/**记录每次游戏用时**/
 	private static long elapsed;
+	/**判断是不是第一次游戏要不要启动计时器**/
 	private static int count2 = 0;
 	/** 时间最短记录 */
 	private static long timeRecord;
