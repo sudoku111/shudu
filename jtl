@@ -54,27 +54,27 @@ public class Sudoku extends JFrame {
 
 	/**游戏初始化*/
 	public void gridInit() {
-		this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
-		this.setSize(800, 600);
-		this.setResizable(false);
-		this.setTitle("Suduko");
-		// set layout
-		this.setLayout(new GridLayout(3, 4));
+		this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);//设置可关闭
+		this.setSize(800, 600);//设置大小
+		this.setResizable(false);//用户不可调整大小
+		this.setTitle("Suduko");//设置标题
+		
+		this.setLayout(new GridLayout(3, 4));//设置布局
 
 		try {
 			n = readfromFile("save.txt");
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
-		}
+		}//读取存档
 
 		for (int i = 0; i < 12; i++) {
-			if ((i + 1) % 4 != 0) {
+			if ((i + 1) % 4 != 0) {//设置数独格
 				pnlGame[i] = new JPanel();
 				// use border to draw the grid
 				pnlGame[i].setBorder(BorderFactory.createLineBorder(Color.black));
 				pnlGame[i].setLayout(new GridLayout(3, 3));
 				this.add(pnlGame[i]);
-			} else if (i == 3) {
+			} else if (i == 3) {//设置三个按钮
 				// 新游戏按钮
 				JButton btn1 = new JButton("新游戏");
 				// 存档按钮
@@ -87,15 +87,15 @@ public class Sudoku extends JFrame {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						programStart = System.currentTimeMillis();
+						programStart = System.currentTimeMillis();//设置初始时间
 						goOn = true;
 						if (count2 == 0) {
-							thread.start();
+							thread.start();//计时器启动
 							count2++;
 						}
 						String[][] n = new String[9][9];
 						if (count == 10 || count == 20 || count == 30)
-							count = count - 10;
+							count = count - 10;//避免超出范围
 						count++;
 						try { // 从文件中读取题目
 							n = readfromFile(String.format("%d.txt", count));
@@ -163,14 +163,16 @@ public class Sudoku extends JFrame {
 				btn3.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						programStart = System.currentTimeMillis();
-						goOn = true;
+						programStart = System.currentTimeMillis();//重新设置初始时间
+						goOn = true;//开始计时
 						String[][] n = new String[9][9];
+						//读取存档
 						try {
 							n = readfromFile("save.txt");
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						}
+						//填入九宫格
 						for (int z = 0; z < 3; z++) {
 							for (int x = 0; x < 3; x++) {
 								for (int y = 0; y < 3; y++) {
@@ -213,11 +215,11 @@ public class Sudoku extends JFrame {
 					}
 				});
 				pnlGame[i] = new JPanel();
-				pnlGame[i].add(btn2);
+				pnlGame[i].add(btn2);//把三个button加入panel
 				pnlGame[i].add(btn3);
 				pnlGame[i].add(btn1);
 				this.add(pnlGame[i]);
-			} else if (i == 7) {
+			} else if (i == 7) {//难易选择
 				group = new ButtonGroup();
 				pnlGame[i] = new JPanel();
 				addJRadioButton("易", i);
@@ -227,15 +229,16 @@ public class Sudoku extends JFrame {
 				pnlGame[i].add(time);
 
 				this.add(pnlGame[i]);
-			} else {
+			} else {//提示
 
 				pnlGame[i] = new JPanel();
 				// 创建提示按钮
 				JButton btn3 = new JButton("提示");
-				JTextField time = new JTextField();
+				JTextField time = new JTextField();//显示提示次数
 				time.setText(String.valueOf(t));
 				time.setEditable(false);
 				pnlGame[i].add(time);
+				//给提示按钮增加监听和功能
 				btn3.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -269,16 +272,15 @@ public class Sudoku extends JFrame {
 							}
 
 						} else {
-							// Create Frame
-							JDialog dialog = new JDialog();
+							// 当提示次数用完时进行提醒
+							JDialog dialog = new JDialog();//创建新的对话框
 							dialog.setBounds(300, 200, 300, 200);
 							dialog.setVisible(true);
 							JLabel jl2 = new JLabel("你的提示次数已用完，点击确定继续");
-							// Create a label
-							final JButton but = new JButton("确定");
+							final JButton but = new JButton("确定");//设置确定按钮，点击关闭对话框继续游戏
 							dialog.setModal(true);
 							dialog.setLayout(new FlowLayout());
-							dialog.add(jl2);/** add label to window */
+							dialog.add(jl2);
 							dialog.add(but);
 							but.addActionListener(new ActionListener() {
 								@Override
@@ -456,19 +458,18 @@ public class Sudoku extends JFrame {
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {// TODO
-
-		new Sudoku();
+                new Sudoku();//开始游戏
 		boolean e = true;
-		while (e) {
+		while (e) {//循环
 			int mmm = 0;
-			while (end()) {
+			while (！end()) {//如果不结束则在循环里面不能继续往下进行
 				mmm++;
 			}
 
-			if (!end()) {
-				goOn = false;
-				compareTime(elapsed);
-				// Create Frame
+			if (end()) {//如果结束弹出窗口
+				goOn = false;//停止计时
+				compareTime(elapsed);//找出最高记录并将本次用时写入文档
+				// 创建新的对话框
 				JDialog dialog = new JDialog();
 				dialog.setBounds(300, 200, 600, 400);
 				dialog.setVisible(true);
@@ -481,7 +482,7 @@ public class Sudoku extends JFrame {
 				dialog.setLayout(new FlowLayout());
 				dialog.add(jl2);
 				dialog.add(but);
-
+				//点击确定按钮关闭对话框
 				but.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -496,17 +497,17 @@ public class Sudoku extends JFrame {
 	}
 
 	private static boolean end() {/** 判断游戏是否结束 */
-		int empty = 0;
+		int empty = 0；
+		//判断数独格子有几个是空的
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
 				for (int y = 0; y < 3; y++) {
-
-					if (txtGame[z][x][y].getText().isEmpty())
+                                   if (txtGame[z][x][y].getText().isEmpty())
 						empty++;
 				}
 			}
 		}
-		return empty != 0;
+		return empty == 0;//格子全部填满结束
 	}
 
 	public static String[][] readfromFile(String filename) throws FileNotFoundException {/** 读取文件 */
@@ -531,13 +532,13 @@ public class Sudoku extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if ("易".equals(text))
-					count = 0;
+					count = 0;//选择易则从零号题目开始
 				else if ("中".equals(text))
-					count = 10;
+					count = 10;//选择中则从十号题目开始
 				else if ("难".equals(text))
-					count = 20;
+					count = 20;//选择难则从二十号题目开始
 				else
-					count = 0;
+					count = 0;//默认难度为易
 
 			}
 
@@ -575,7 +576,7 @@ public class Sudoku extends JFrame {
 	 *
 	 */
 	private class CountingThread extends Thread {
-		public boolean goOn = true;
+		public boolean goOn = true;//是否继续计时
 
 		private CountingThread() {
 			setDaemon(true);
@@ -583,11 +584,11 @@ public class Sudoku extends JFrame {
 
 		@Override
 		public void run() {
-			/** 将毫秒数变为时秒分 */
+			//开始计时
 			while (true) {
 				if (goOn) {
 					elapsed = System.currentTimeMillis() - programStart;
-					time.setText(format(elapsed));
+					time.setText(format(elapsed));//把毫秒转化成时分秒的格式
 				}
 				try {
 					// 1毫秒更新一次显示
@@ -600,7 +601,7 @@ public class Sudoku extends JFrame {
 		}
 	}
 
-	public static String format(long elapsed) {
+	public static String format(long elapsed) {//转化时间的格式
 		int hour, minute, second, milli;
 		milli = (int) (elapsed % 1000);
 		elapsed = elapsed / 1000;
@@ -612,7 +613,7 @@ public class Sudoku extends JFrame {
 		return String.format("%02d:%02d:%02d %03d", hour, minute, second, milli);
 	}
 
-	private static void compareTime(long t) throws FileNotFoundException {
+	private static void compareTime(long t) throws FileNotFoundException {//在现有的时间记录中找到最高纪录
 		write(t);
 		File inputFile = new File("record.txt");
 		Scanner input = new Scanner(inputFile);
@@ -626,10 +627,10 @@ public class Sudoku extends JFrame {
 		}
 	}
 
-	private static void write(long t) {
+	private static void write(long t) {//把此次时间写入文档中保存
 		FileOutputStream o = null;
 
-		byte[] buff = new byte[] {};
+		byte[] buff = new byte[] ;
 
 		try {
 			File file = new File("record.txt");
