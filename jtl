@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -43,7 +45,7 @@ public class Sudoku extends JFrame {
 			lastFocusTextFiled = (JTextField) e.getComponent();
 		}
 	};
-	
+
 
 	public Sudoku() {
 		pnlGame = new JPanel[12];
@@ -318,66 +320,52 @@ public class Sudoku extends JFrame {
 			}
 		}
 
-		// 错误提示
-//		for (int z = 0; z < 9; z++) {
-//			for (int x = 0; x < 3; x++) {
-//				for (int y = 0; y < 3; y++) {
-//					check();
-//				}
-//			}
-//		}
-
+		addCheck();
 		this.setVisible(true);
 
 	}
 
-	public void check() {
+	public void addCheck() {
 		/** 判断输入数字是否冲突 */
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
 				for (int y = 0; y < 3; y++) {
-					Key(txtGame[z][x][y], z, x, y);
+					int i = z, j = x, k = y;
+					txtGame[z][x][k].getDocument().addDocumentListener(new DocumentListener() {
+						@Override
+						public void insertUpdate(DocumentEvent e) {
+							checkWhenChange(i, j, k);
+						}
+
+						@Override
+						public void removeUpdate(DocumentEvent e) {
+							checkWhenChange(i, j, k);
+						}
+
+						@Override
+						public void changedUpdate(DocumentEvent e) {
+							checkWhenChange(i, j, k);
+						}
+					});
 				}
 			}
 		}
 	}
 
-	private static void Key(JTextField txt, int z, int x, int y) {/** 键盘监听输入数字 */// TODO
-		txt.addKeyListener(new KeyAdapter() {
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-				// 键盘输入内容触发事件
-				while (true) {
-					check(z, x, y);
-					// 如果有冲突
-					if (warnFiledMap.size() != 0) {
-						// 如果修改冲突域的数字
-						if (warnFiledMap.get(txtGame[z][x][y]) != null) {
-							if (!txtGame[z][x][y].getText().equals(warnFiledMap.get(txtGame[z][x][y]).getText())) {
-								txtGame[z][x][y].setForeground(Color.black);
-								warnFiledMap.get(txtGame[z][x][y]).setForeground(Color.black);
-								// 清空冲突域
-								warnFiledMap.clear();
-							}
-							// 根据坐标检查填入的数字是否正确
-							check(z, x, y);
-						}
-					} else// 如果没有冲突跳出循环
-						break;
+	private static void checkWhenChange(int z, int x, int y) {
+		if (warnFiledMap.size() != 0) {
+			// 如果修改冲突域的数字
+			if (warnFiledMap.get(txtGame[z][x][y]) != null) {
+				if (!txtGame[z][x][y].getText().equals(warnFiledMap.get(txtGame[z][x][y]).getText())) {
+					txtGame[z][x][y].setForeground(Color.black);
+					warnFiledMap.get(txtGame[z][x][y]).setForeground(Color.black);
+					// 清空冲突域
+					warnFiledMap.remove(txtGame[z][x][y]);
 				}
+				// 根据坐标检查填入的数字是否正确
 			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-
-			}
-		});
+		}
+		check(z, x, y);
 	}
 
 	private static void check(int z0, int x0, int y0) { /** 判断对错 */// TODO
@@ -444,7 +432,7 @@ public class Sudoku extends JFrame {
 		// 检查小九宫格内部数字
 		for (int x = 0; x < 3; x++) {
 			for (int y = 0; y < 3; y++) {
-				if (!(x == x0 && y == y0) && txtGame[z0][x0][y0].getText().equals(value)) {
+				if (!(x == x0 && y == y0) && txtGame[z0][x][y].getText().equals(value)) {
 					txtGame[z0][x][y].setForeground(Color.red);
 					txtGame[z0][x0][y0].setForeground(Color.red);
 					// 将冲突的两个文本框中的数字交替放入map中
@@ -458,16 +446,20 @@ public class Sudoku extends JFrame {
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {// TODO
-                new Sudoku();//开始游戏
+		Sudoku s = new Sudoku();//开始游戏
 		boolean e = true;
 		while (e) {//循环
-			int mmm = 0;
-			while (！end()) {//如果不结束则在循环里面不能继续往下进行
-				mmm++;
+			while (!end()&&goOn) {//如果不结束则在循环里面不能继续往下进行
+				try{
+					Thread.sleep(10);
+				}catch (Exception exc){
+					exc.printStackTrace();
+				}
 			}
 
-			if (end()) {//如果结束弹出窗口
+			if (end()&&goOn) {//如果结束弹出窗口
 				goOn = false;//停止计时
+				s.thread.goOn = false;
 				compareTime(elapsed);//找出最高记录并将本次用时写入文档
 				// 创建新的对话框
 				JDialog dialog = new JDialog();
@@ -475,7 +467,8 @@ public class Sudoku extends JFrame {
 				dialog.setVisible(true);
 
 				// 弹出游戏结束对话框
-				JLabel jl2 = new JLabel("游戏结束！用时  " + format(elapsed) + "最高纪录为  " + format(timeRecord) + "  点击确定继续");
+				JLabel jl2 = new JLabel("游戏结束！用时  " + format(elapsed) + "最高纪录为  " + format(timeRecord) + "  点击确定继续" +
+						"\n 请手动开始新游戏");
 
 				final JButton but = new JButton("确定");
 				dialog.setModal(true);
@@ -490,19 +483,17 @@ public class Sudoku extends JFrame {
 					}
 				});
 			}
-			// 开始新游戏
-			newGame();
 		}
 
 	}
 
 	private static boolean end() {/** 判断游戏是否结束 */
-		int empty = 0；
+		int empty = 0;
 		//判断数独格子有几个是空的
 		for (int z = 0; z < 9; z++) {
 			for (int x = 0; x < 3; x++) {
 				for (int y = 0; y < 3; y++) {
-                                   if (txtGame[z][x][y].getText().isEmpty())
+					if(txtGame[z][x][y].getText().isEmpty())
 						empty++;
 				}
 			}
@@ -630,7 +621,7 @@ public class Sudoku extends JFrame {
 	private static void write(long t) {//把此次时间写入文档中保存
 		FileOutputStream o = null;
 
-		byte[] buff = new byte[] ;
+		byte[] buff = new byte[] {};
 
 		try {
 			File file = new File("record.txt");
@@ -702,6 +693,14 @@ public class Sudoku extends JFrame {
 						txtGame[z][x][y].setText(n[x + 6][y + 3 * (z - 6)]);
 						txtGame[z][x][y].setEditable(false);
 					}
+				}
+			}
+		}
+		for (int z=0;z<9;z++){
+			for(int x=0;x<3;x++){
+				for(int y=0;y<3;y++){
+					txtGame[z][x][y].setForeground(Color.black);
+					//强制变色
 				}
 			}
 		}
