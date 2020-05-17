@@ -25,9 +25,9 @@ public class Sudoku extends JFrame {
 	private JTextField lastFocusTextFiled;
 	/** 从题目文件获取的数独数组 */
 	private static String[][] n = new String[9][9];
-        /**显示时间的标签**/
+	/**显示时间的标签**/
 	private JLabel time;
-        /**计时器**/
+	/**计时器**/
 	private CountingThread thread = new CountingThread();
 	/** 游戏初始时间 */
 	private static long programStart;
@@ -71,9 +71,9 @@ public class Sudoku extends JFrame {
 	/** 游戏初始化 */
 	public void gridInit() {
 		this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);// 设置可关闭
-		this.setSize(800, 600);//设置窗口大小
+		this.setSize(800, 600);
 		this.setResizable(false);// 用户不可调整大小
-		this.setTitle("Suduko");//设置窗口标题
+		this.setTitle("Suduko");
 		this.setLayout(new GridLayout(3, 4));// 设置布局
 
 		try {// 读取存档
@@ -85,8 +85,9 @@ public class Sudoku extends JFrame {
 		for (int i = 0; i < 12; i++) {
 			if ((i + 1) % 4 != 0) {// 设置数独格
 				pnlGame[i] = new JPanel();
-				pnlGame[i].setBorder(BorderFactory.createLineBorder(Color.black));//设置边框
-				pnlGame[i].setLayout(new GridLayout(3, 3));//设置布局
+				// use border to draw the grid
+				pnlGame[i].setBorder(BorderFactory.createLineBorder(Color.black));
+				pnlGame[i].setLayout(new GridLayout(3, 3));
 				this.add(pnlGame[i]);
 			} else if (i == 3) {// 设置三个按钮
 				JButton btn1 = new JButton("新游戏");
@@ -237,8 +238,7 @@ public class Sudoku extends JFrame {
 					}
 				});
 				pnlGame[i] = new JPanel();
-				/**把三个button加入panel**/
-				pnlGame[i].add(btn2);
+				pnlGame[i].add(btn2);// 把三个button加入panel
 				pnlGame[i].add(btn3);
 				pnlGame[i].add(btn1);
 				this.add(pnlGame[i]);
@@ -248,7 +248,7 @@ public class Sudoku extends JFrame {
 				addJRadioButton("易", i);
 				addJRadioButton("中", i);
 				addJRadioButton("难", i);
-				time = new JLabel("00:00:00 000");//时间显示
+				time = new JLabel("00:00:00 000");
 				pnlGame[i].add(time);
 				this.add(pnlGame[i]);
 			} else {// 提示
@@ -548,10 +548,10 @@ public class Sudoku extends JFrame {
 				// 选择易则从零号题目开始
 				if ("易".equals(text))
 					count = 0;
-				// 选择中则从十号题目开始
+				// 选择中则从二十号题目开始
 				else if ("中".equals(text))
 					count = 20;
-				// 选择难则从二十号题目开始
+				// 选择难则从四十号题目开始
 				else if ("难".equals(text))
 					count = 40;
 				// 默认难度为易
@@ -647,29 +647,21 @@ public class Sudoku extends JFrame {
 	/** 把此次时间写入文档中保存 */
 	private static void write(long t) {
 		FileOutputStream o = null;
-
 		byte[] buff = new byte[] {};
-
 		try {
 			File file = new File("record.txt");
 			if (!file.exists()) {//如果不存在则创建新文档
 				file.createNewFile();
 			}
-
 			buff = String.valueOf(t).getBytes();//把时间转换成字符格式
-
 			o = new FileOutputStream(file, true);//可以后续增加内容
-
 			o.write(buff);//把时间写入
 			byte[] bu = new byte[] { ' ' };//空格分割每次时间
 			o.write(bu);
 			o.flush();
-
 			o.close();//关闭文档
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
 }
